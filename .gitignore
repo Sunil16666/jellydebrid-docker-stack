@@ -1,0 +1,14 @@
+# Ignore Docker volumes and app data
+jellyfin/config/
+jellyfin/cache/
+jellyfin/media/
+jellyseerr/config/
+prowlarr/config/
+radarr/config/
+sonarr/config/
+rdtclient/db/
+downloads/
+# Ignore letsencrypt for Traefik certs
+letsencrypt/
+# Ignore logs
+*.log

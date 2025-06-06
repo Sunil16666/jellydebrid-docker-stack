@@ -1,0 +1,108 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "8096:8096"
+      - "8920:8920"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - ./jellyfin/media:/media
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "5055:5055"
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+    volumes:
+      - ./jellyseerr/config:/app/config
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "8989:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "7878:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+
+  prowlarr:
+      image: lscr.io/linuxserver/prowlarr:latest
+      container_name: prowlarr
+      depends_on:
+        - sonarr
+        - radarr
+      restart: unless-stopped
+      ports:
+        - "9696:9696"
+      environment:
+        - PUID=${PUID}
+        - PGID=020
+        - TZ=${TZ}
+      volumes:
+        - ./prowlarr/config:/config
+
+  rdtclient:
+    image: rogerfar/rdtclient:latest
+    container_name: rdtclient
+    depends_on:
+      - prowlarr
+    logging:
+       driver: json-file
+       options:
+          max-size: 10m
+    ports:
+      - 6500:6500
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - USER_UID=501
+      - USER_GID=20
+    volumes:
+      - ./rdtclient/db:/data/db
+      - ./downloads:/downloads
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - "8191:8191"
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
