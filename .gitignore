@@ -12,3 +12,5 @@ downloads/
 letsencrypt/
 # Ignore logs
 *.log
+# Ignore .env files
+.env

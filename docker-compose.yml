@@ -1,17 +1,57 @@
 services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api.dashboard=false
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.email=ACME_EMAIL
+      - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+    ports:
+      - "80:80"
+      - "443:443"
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+    networks:
+      - traefik
+    labels:
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=192.168.178.0/24"
+      # Only allow IPs from 192.168.178.*
+
   jellyfin:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
-    ports:
-      - "8096:8096"
-      - "8920:8920"
     environment:
       - TZ=${TZ}
     volumes:
       - ./jellyfin/config:/config
       - ./jellyfin/cache:/cache
       - ./jellyfin/media:/media
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for JELLYFIN_DOMAIN
+      - "traefik.http.routers.jellyfin.rule=Host(`JELLYFIN_DOMAIN`)"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.middlewares=ipwhitelist@docker"
+      # — HTTP router that simply redirects to HTTPS
+      - "traefik.http.routers.jellyfin-web.rule=Host(`JELLYFIN_DOMAIN`)"
+      - "traefik.http.routers.jellyfin-web.entrypoints=web"
+      - "traefik.http.routers.jellyfin-web.middlewares=redirect-to-https@docker"
 
   jellyseerr:
     image: fallenbagel/jellyseerr:latest
@@ -19,13 +59,25 @@ services:
     depends_on:
       - jellyfin
     restart: unless-stopped
-    ports:
-      - "5055:5055"
     environment:
       - LOG_LEVEL=info
       - TZ=${TZ}
     volumes:
       - ./jellyseerr/config:/app/config
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for JELLYSEERR_DOMAIN
+      - "traefik.http.routers.jellyseerr.rule=Host(`JELLYSEERR_DOMAIN`)"
+      - "traefik.http.routers.jellyseerr.entrypoints=websecure"
+      - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+      - "traefik.http.routers.jellyseerr.middlewares=ipwhitelist@docker"
+      # — HTTP → HTTPS redirect
+      - "traefik.http.routers.jellyseerr-web.rule=Host(`JELLYSEERR_DOMAIN`)"
+      - "traefik.http.routers.jellyseerr-web.entrypoints=web"
+      - "traefik.http.routers.jellyseerr-web.middlewares=redirect-to-https@docker"
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
@@ -43,6 +95,8 @@ services:
       - ./sonarr/config:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+    networks:
+      - traefik
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
@@ -60,35 +114,39 @@ services:
       - ./radarr/config:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+    networks:
+      - traefik
 
   prowlarr:
-      image: lscr.io/linuxserver/prowlarr:latest
-      container_name: prowlarr
-      depends_on:
-        - sonarr
-        - radarr
-      restart: unless-stopped
-      ports:
-        - "9696:9696"
-      environment:
-        - PUID=${PUID}
-        - PGID=020
-        - TZ=${TZ}
-      volumes:
-        - ./prowlarr/config:/config
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    depends_on:
+      - sonarr
+      - radarr
+    restart: unless-stopped
+    ports:
+      - "9696:9696"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./prowlarr/config:/config
+    networks:
+      - traefik
 
   rdtclient:
     image: rogerfar/rdtclient:latest
     container_name: rdtclient
     depends_on:
       - prowlarr
-    logging:
-       driver: json-file
-       options:
-          max-size: 10m
-    ports:
-      - 6500:6500
     restart: unless-stopped
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+    ports:
+      - "6500:6500"
     environment:
       - TZ=${TZ}
       - USER_UID=501
@@ -96,6 +154,8 @@ services:
     volumes:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads
+    networks:
+      - traefik
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -103,6 +163,9 @@ services:
     restart: unless-stopped
     ports:
       - "8191:8191"
-    environment:
-      - LOG_LEVEL=info
-      - TZ=${TZ}
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    driver: bridge
