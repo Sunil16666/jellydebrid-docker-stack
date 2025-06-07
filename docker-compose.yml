@@ -4,7 +4,8 @@ services:
     container_name: traefik
     restart: unless-stopped
     command:
-      - --api.dashboard=false
+      - --api.insecure=true
+      - --api.dashboard=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --entrypoints.web.address=:80
@@ -13,20 +14,28 @@ services:
       - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
       - --certificatesresolvers.cloudflare.acme.email=ACME_EMAIL
       - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.cloudflare.acme.caserver=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --log.level=DEBUG
+      - --accesslog
+      - --accesslog.filepath=/var/log/traefik/access.log
     ports:
-      - "80:80"
+      - "80:80" 
       - "443:443"
+      - "127.0.0.1:8080:8080"
     environment:
-      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+      - CF_API_EMAIL=henn.linus@gmail.com
+      - CF_DNS_API_TOKEN=F4FpBafgtk9ARIVESNnfz52exVSvWzoM15vSqkDI
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
     networks:
       - traefik
     labels:
+      - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.ipwhitelist.ipwhitelist.sourcerange=192.168.178.0/24"
-      # Only allow IPs from 192.168.178.*
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=10"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
+      
 
   jellyfin:
     image: jellyfin/jellyfin:latest
@@ -47,7 +56,7 @@ services:
       - "traefik.http.routers.jellyfin.entrypoints=websecure"
       - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
-      - "traefik.http.routers.jellyfin.middlewares=ipwhitelist@docker"
+      - "traefik.http.routers.jellyfin.middlewares=ratelimit@docker"
       # — HTTP router that simply redirects to HTTPS
       - "traefik.http.routers.jellyfin-web.rule=Host(`JELLYFIN_DOMAIN`)"
       - "traefik.http.routers.jellyfin-web.entrypoints=web"
@@ -73,7 +82,7 @@ services:
       - "traefik.http.routers.jellyseerr.entrypoints=websecure"
       - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
-      - "traefik.http.routers.jellyseerr.middlewares=ipwhitelist@docker"
+      - "traefik.http.routers.jellyseerr.middlewares=ratelimit@docker"
       # — HTTP → HTTPS redirect
       - "traefik.http.routers.jellyseerr-web.rule=Host(`JELLYSEERR_DOMAIN`)"
       - "traefik.http.routers.jellyseerr-web.entrypoints=web"
