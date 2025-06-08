@@ -144,18 +144,36 @@ services:
     networks:
       - traefik
 
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=${TZ}
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_COUNTRIES=${WIREGUARD_COUNTRIES}
+      - PORT_FORWARDING=on
+      - PORT_FORWARD_ONLY=on
+    volumes:
+      - ./gluetun:/gluetun
+    networks:
+      - vpn
+      - traefik
+    ports:
+      - "6500:6500"
+
   rdtclient:
     image: rogerfar/rdtclient:latest
     container_name: rdtclient
+    restart: unless-stopped
+    network_mode: "service:gluetun"
     depends_on:
       - prowlarr
-    restart: unless-stopped
-    logging:
-      driver: json-file
-      options:
-        max-size: "10m"
-    ports:
-      - "6500:6500"
+      - gluetun
     environment:
       - TZ=${TZ}
       - USER_UID=501
@@ -163,8 +181,6 @@ services:
     volumes:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads
-    networks:
-      - traefik
 
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
@@ -177,4 +193,6 @@ services:
 
 networks:
   traefik:
+    driver: bridge
+  vpn:
     driver: bridge

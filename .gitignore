@@ -14,3 +14,5 @@ letsencrypt/
 *.log
 # Ignore .env files
 .env
+# Ignore VPN configuration files
+gluetun/servers.json
