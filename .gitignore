@@ -4,8 +4,14 @@ jellyfin/cache/
 jellyfin/media/
 jellyseerr/config/
 prowlarr/config/
-radarr/config/
-sonarr/config/
+radarr/1080p-en/
+radarr/1080p-de/
+radarr/2160p-en/
+radarr/2160p-de/
+sonarr/1080p-en/
+sonarr/1080p-de/
+sonarr/2160p-en/
+sonarr/2160p-de/
 bazarr/config/
 rdtclient/db/
 downloads/
@@ -51,3 +57,6 @@ acme.json
 .idea/
 *.swp
 *.swo
+
+# Ignore backups
+backups/
