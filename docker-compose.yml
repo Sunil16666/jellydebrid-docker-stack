@@ -219,6 +219,22 @@ services:
     networks:
       - traefik
 
+  configarr:
+    image: ghcr.io/raydak-labs/configarr:latest
+    container_name: configarr
+    depends_on:
+      - sonarr
+      - radarr
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - SONARR_API_KEY=${SONARR_API_KEY}
+      - RADARR_API_KEY=${RADARR_API_KEY}
+    volumes:
+      - ./configarr:/app/config
+    networks:
+      - traefik
+
 networks:
   traefik:
     driver: bridge
