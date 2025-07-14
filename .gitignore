@@ -6,6 +6,7 @@ jellyseerr/config/
 prowlarr/config/
 radarr/config/
 sonarr/config/
+bazarr/config/
 rdtclient/db/
 downloads/
 # Ignore letsencrypt for Traefik certs

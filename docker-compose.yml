@@ -186,6 +186,26 @@ services:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads
 
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    depends_on:
+      - sonarr
+      - radarr
+    restart: unless-stopped
+    ports:
+      - "6767:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
