@@ -13,7 +13,7 @@ services:
       - --certificatesresolvers.cloudflare.acme.dnschallenge=true
       - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
       - --certificatesresolvers.cloudflare.acme.dnschallenge.delaybeforecheck=10
-      - --certificatesresolvers.cloudflare.acme.email=ACME_EMAIL
+      - --certificatesresolvers.cloudflare.acme.email=${ACME_EMAIL}
       - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.cloudflare.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
       - --log.level=DEBUG
@@ -55,14 +55,14 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      # — HTTPS router for JELLYFIN_DOMAIN
-      - "traefik.http.routers.jellyfin.rule=Host(`JELLYFIN_DOMAIN`)"
+      # — HTTPS router for jellyfin.jellystream.net
+      - "traefik.http.routers.jellyfin.rule=Host(`${JELLYFIN_DOMAIN}`)"
       - "traefik.http.routers.jellyfin.entrypoints=websecure"
       - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
       - "traefik.http.routers.jellyfin.middlewares=ratelimit@docker"
       # — HTTP router that simply redirects to HTTPS
-      - "traefik.http.routers.jellyfin-web.rule=Host(`JELLYFIN_DOMAIN`)"
+      - "traefik.http.routers.jellyfin-web.rule=Host(`${JELLYFIN_DOMAIN}`)"
       - "traefik.http.routers.jellyfin-web.entrypoints=web"
       - "traefik.http.routers.jellyfin-web.middlewares=redirect-to-https@docker"
 
@@ -81,14 +81,14 @@ services:
       - traefik
     labels:
       - "traefik.enable=true"
-      # — HTTPS router for JELLYSEERR_DOMAIN
-      - "traefik.http.routers.jellyseerr.rule=Host(`JELLYSEERR_DOMAIN`)"
+      # — HTTPS router for jellyseerr.jellystream.net
+      - "traefik.http.routers.jellyseerr.rule=Host(`${JELLYSEERR_DOMAIN}`)"
       - "traefik.http.routers.jellyseerr.entrypoints=websecure"
       - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
       - "traefik.http.routers.jellyseerr.middlewares=ratelimit@docker"
       # — HTTP → HTTPS redirect
-      - "traefik.http.routers.jellyseerr-web.rule=Host(`JELLYSEERR_DOMAIN`)"
+      - "traefik.http.routers.jellyseerr-web.rule=Host(`${JELLYSEERR_DOMAIN}`)"
       - "traefik.http.routers.jellyseerr-web.entrypoints=web"
       - "traefik.http.routers.jellyseerr-web.middlewares=redirect-to-https@docker"
 
@@ -180,8 +180,8 @@ services:
       - gluetun
     environment:
       - TZ=${TZ}
-      - USER_UID=501
-      - USER_GID=20
+      - USER_UID=${PUID}
+      - USER_GID=${PGID}
     volumes:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads

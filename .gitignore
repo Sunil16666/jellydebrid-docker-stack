@@ -9,11 +9,45 @@ sonarr/config/
 bazarr/config/
 rdtclient/db/
 downloads/
+
 # Ignore letsencrypt for Traefik certs
 letsencrypt/
+
 # Ignore logs
 *.log
-# Ignore .env files
+traefik/logs/
+
+# Ignore .env files (CRITICAL SECURITY)
 .env
+.env.local
+.env.*.local
+.env.backup
+
 # Ignore VPN configuration files
 gluetun/servers.json
+*.ovpn
+
+# Ignore database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Ignore SSL certificates and keys
+*.pem
+*.crt
+*.key
+acme.json
+
+# Ignore backup files
+*/backup/
+*/restore/
+*.bak
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
