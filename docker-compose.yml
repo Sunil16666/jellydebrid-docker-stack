@@ -109,6 +109,7 @@ services:
       - ./sonarr/1080p-en:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro  # Custom scripts directory
     networks:
       - traefik
 
@@ -128,6 +129,7 @@ services:
       - ./sonarr/1080p-de:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -147,6 +149,7 @@ services:
       - ./sonarr/2160p-en:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -166,6 +169,7 @@ services:
       - ./sonarr/2160p-de:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -186,6 +190,7 @@ services:
       - ./radarr/1080p-en:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -205,6 +210,7 @@ services:
       - ./radarr/1080p-de:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -224,6 +230,7 @@ services:
       - ./radarr/2160p-en:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
@@ -243,6 +250,7 @@ services:
       - ./radarr/2160p-de:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
+      - ./scripts:/scripts:ro
     networks:
       - traefik
 
