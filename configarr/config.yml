@@ -1,244 +1,228 @@
-# Configarr Configuration - Multi-Instance Radarr Setup
-# HD Bluray + WEB Profile (1080p only) with Language-Specific Configurations
-# Based on TRaSH-Guides: https://trash-guides.info/Radarr/radarr-setup-quality-profiles/
-
-trashGuideUrl: https://github.com/TRaSH-Guides/Guides
-recyclarrConfigUrl: https://github.com/recyclarr/config-templates
+###################################################################################################
+# Recyclarr Configuration Template: HD Bluray + WEB (GER)                                         #
+# Updated: 2025-05-04                                                                             #
+# Documentation: https://recyclarr.dev                                                            #
+# Note: If you are using multiple profiles in a single instance, please read the following        #
+# documentation about file merging:                                                               #
+# https://recyclarr.dev/wiki/yaml/config-examples/#merge-single-instance                          #
+###################################################################################################
+# Instance Definition: https://recyclarr.dev/wiki/yaml/config-reference/basic/
 
 radarr:
-  # English 1080p Instance
-  en-1080p:
+  hd-bluray-web-ger:
+    base_url: http://radarr-1080p-de:7878
+    api_key: !env RADARR_DE_1080P_API_KEY
+
+    include:
+      - template: radarr-quality-definition-movie
+      - template: radarr-custom-formats-hd-bluray-web-german
+      - template: radarr-quality-profile-hd-bluray-web-german
+
+    quality_profiles:
+      - name: HD Bluray + WEB (GER)
+        min_format_score: 10000 # Uncomment this line to skip English Releases
+
+    custom_formats:
+      - trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: HD Bluray + WEB (GER)
+
+### x265 - IMPORTANT: Only use on of the options below.
+      - trash_ids:
+          - 839bea857ed2c0a8e084f3cbdbd65ecb
+        assign_scores_to:
+          - name: HD Bluray + WEB (GER)
+
+### Generated Dynamic HDR
+      - trash_ids:
+          - e6886871085226c3da1830830146846c
+        assign_scores_to:
+          - name: HD Bluray + WEB (GER)
+            score: -35000
+
+  hd-bluray-web:
     base_url: http://radarr-1080p-en:7878
     api_key: !env RADARR_EN_1080P_API_KEY
-    
-    quality_definition:
-      type: movie
-      
+
     include:
-      # Base HD Bluray + WEB templates
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
-      
-    # Override quality profiles to remove 720p and add English language preferences
-    quality_profiles:
-      - name: HD Bluray + WEB
-        reset_unmatched_scores: true
-        upgrade:
-          allowed: true
-          until_quality: Bluray-1080p
-          until_score: 10000
-        min_format_score: 0
-        quality_sort: top
-        # Only 1080p qualities - removed all 720p entries
-        qualities:
-          - name: Bluray-1080p
-          - name: WEB 1080p
-            qualities:
-              - WEBDL-1080p
-              - WEBRip-1080p
-        
-    # Add language-specific custom formats for English instance
-    custom_formats:
-      # Language preferences for English + allow Multi/Dual with English
-      - trash_ids:
-          - 87d0e4c6e31c0f8df4ff8c49d0b2c9f4 # Language: Not English
-        quality_profiles:
-          - name: HD Bluray + WEB
-            score: -10000  # Block non-English releases
-            
-      - trash_ids:
-          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
-          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
-        quality_profiles:
-          - name: HD Bluray + WEB
-            score: 0       # Allow German dual-language with English
-            
-      - trash_ids:
-          - 9172b2f683f6223e3a1846427b417a3d # Multi
-        quality_profiles:
-          - name: HD Bluray + WEB
-            score: 0       # Allow multi-language releases
-            
-  # German 1080p Instance  
-  de-1080p:
-    base_url: http://radarr-1080p-de:7878
-    api_key: !env RADARR_DE_1080P_API_KEY
-    
-    quality_definition:
-      type: movie
-      
-    include:
-      # Base HD Bluray + WEB templates
-      - template: radarr-quality-definition-movie
-      # Use German-specific template
-      - template: 2b90e905c99490edc7c7a5787443748b # German HD Bluray + WEB
-        source: TRASH
-      - template: radarr-custom-formats-hd-bluray-web
-      
-    # Override quality profiles to remove 720p
-    quality_profiles:
-      - name: "[German] HD Bluray + WEB"
-        reset_unmatched_scores: true
-        upgrade:
-          allowed: true
-          until_quality: Bluray-1080p
-          until_score: 35000
-        min_format_score: 0
-        quality_sort: top
-        # Only 1080p qualities - removed all 720p entries
-        qualities:
-          - name: Bluray-1080p
-          - name: WEB 1080p
-            qualities:
-              - WEBDL-1080p
-              - WEBRip-1080p
-        
-    # Language-specific custom formats for German instance  
-    custom_formats:
-      # Enhance German language preferences
-      - trash_ids:
-          - 86bc3115eb4e9873ac96904a4a68e19e # Language: German
-        quality_profiles:
-          - name: "[German] HD Bluray + WEB"
-            score: 100     # Prefer German-only releases
-            
-      - trash_ids:
-          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
-          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
-        quality_profiles:
-          - name: "[German] HD Bluray + WEB"
-            score: 50      # Prefer German dual-language
-            
-      - trash_ids:
-          - 9172b2f683f6223e3a1846427b417a3d # Multi
-        quality_profiles:
-          - name: "[German] HD Bluray + WEB"
-            score: 0       # Allow multi-language releases
-            
-      - trash_ids:
-          - 4eadb75fb23d09dfc0a8e3f687e72287 # Language: Not German or English
-        quality_profiles:
-          - name: "[German] HD Bluray + WEB"
-            score: -10000  # Block other languages
 
-  # English 2160p Instance
-  en-2160p:
-    base_url: http://radarr-2160p-en:7878
-    api_key: !env RADARR_EN_2160P_API_KEY
-    
-    quality_definition:
-      type: movie
-      
-    include:
-      # Base UHD Bluray + WEB templates for 2160p
-      - template: radarr-quality-definition-movie
-      - template: radarr-quality-profile-uhd-bluray-web
-      - template: radarr-custom-formats-uhd-bluray-web
-      
-    # Override quality profiles for 2160p only
-    quality_profiles:
-      - name: UHD Bluray + WEB
-        reset_unmatched_scores: true
-        upgrade:
-          allowed: true
-          until_quality: Bluray-2160p
-          until_score: 10000
-        min_format_score: 0
-        quality_sort: top
-        # Only 2160p qualities
-        qualities:
-          - name: Bluray-2160p
-          - name: WEB 2160p
-            qualities:
-              - WEBDL-2160p
-              - WEBRip-2160p
-        
-    # Add language-specific custom formats for English 2160p instance
     custom_formats:
-      # Language preferences for English + allow Multi/Dual with English
+      # Not English
+      - trash_ids: ["0dc8aec3bd1c47cd6c40c46ecd27e846"]   # Language: Not English
+        assign_scores_to:
+          - name: HD Bluray + WEB
       - trash_ids:
-          - 87d0e4c6e31c0f8df4ff8c49d0b2c9f4 # Language: Not English
-        quality_profiles:
-          - name: UHD Bluray + WEB
-            score: -10000  # Block non-English releases
-            
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - cc444569854e9de0b084ab2b8b1532b2 # Black and White Editions
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: HD Bluray + WEB
+
       - trash_ids:
-          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
-          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
-        quality_profiles:
-          - name: UHD Bluray + WEB
-            score: 0       # Allow German dual-language with English
-            
-      - trash_ids:
-          - 9172b2f683f6223e3a1846427b417a3d # Multi
-        quality_profiles:
-          - name: UHD Bluray + WEB
-            score: 0       # Allow multi-language releases
-            
-  # German 2160p Instance  
-  de-2160p:
+          # Uncomment the next six lines to allow x265 HD releases with HDR/DV
+          # - dc98083864ea246d05a42df0d05f81cc # x265 (HD)
+        # assign_scores_to:
+          # - name: HD Bluray + WEB
+            # score: 0
+      # - trash_ids:
+          # - 839bea857ed2c0a8e084f3cbdbd65ecb # x265 (no HDR/DV)
+        assign_scores_to:
+          - name: HD Bluray + WEB
+  
+  uhd-bluray-web-ger:
     base_url: http://radarr-2160p-de:7878
     api_key: !env RADARR_DE_2160P_API_KEY
-    
-    quality_definition:
-      type: movie
-      
+
     include:
-      # Base UHD Bluray + WEB templates for 2160p
+      - template: radarr-quality-definition-movie
+      - template: radarr-custom-formats-uhd-bluray-web-german
+      - template: radarr-quality-profile-uhd-bluray-web-german
+
+    quality_profiles:
+      - name: UHD Bluray + WEB (GER)
+        min_format_score: 10000
+    custom_formats:
+### Audio
+      - trash_ids:
+# Uncomment the next section to enable Advanced Audio Formats
+#          - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+#          - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+#          - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+#          - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+#          - 3cafb66171b47f226146a0770576870f # TrueHD
+#          - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+#          - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+#          - e7c2fcae07cbada050a0af3357491d7b # PCM
+#          - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+#          - 185f1dd7264c4562b9022d963ac37424 # DD+
+#          - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+#          - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+#          - 240770601cc226190c367ef59aba7463 # AAC
+#          - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+### Optional
+      - trash_ids:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+
+### HDR / DV
+      - trash_ids:
+# Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+
+# HDR10+ Boost - Uncomment the next two lines if any of your devices DO support HDR10+
+#          - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
+#          - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+ Boost
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+
+### Optional SDR
+# Only ever use ONE of the following custom formats:
+# SDR - block ALL SDR releases
+# SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
+      - trash_ids:
+#          - 9c38ebb7384dada637be8899efa68e6f # SDR
+          - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+
+### x265 - IMPORTANT: Only use on of the options below.
+      - trash_ids:
+#          - 839bea857ed2c0a8e084f3cbdbd65ecb # Uncomment this line to allow HDR/DV x265 HD releases
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+
+      - trash_ids:
+          - dc98083864ea246d05a42df0d05f81cc # Uncomment this line to block all x265 HD releases
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+            score: -35000
+
+### Generated Dynamic HDR
+      - trash_ids:
+          - e6886871085226c3da1830830146846c # Uncomment this line to block Generated Dynamic HDR
+        assign_scores_to:
+          - name: UHD Bluray + WEB (GER)
+            score: -35000
+  
+  uhd-bluray-web:
+    base_url: http://radarr-2160p-en:7878
+    api_key: !env RADARR_EN_2160P_API_KEY
+
+    include:
+      # Comment out any of the following includes to disable them
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-uhd-bluray-web
       - template: radarr-custom-formats-uhd-bluray-web
-      
-    # Override quality profiles for 2160p only
-    quality_profiles:
-      - name: UHD Bluray + WEB
-        reset_unmatched_scores: true
-        upgrade:
-          allowed: true
-          until_quality: Bluray-2160p
-          until_score: 35000
-        min_format_score: 0
-        quality_sort: top
-        # Only 2160p qualities
-        qualities:
-          - name: Bluray-2160p
-          - name: WEB 2160p
-            qualities:
-              - WEBDL-2160p
-              - WEBRip-2160p
-        
-    # Language-specific custom formats for German 2160p instance  
+
+# Custom Formats: https://recyclarr.dev/wiki/yaml/config-reference/custom-formats/
     custom_formats:
-      # Enhance German language preferences
-      - trash_ids:
-          - 86bc3115eb4e9873ac96904a4a68e19e # Language: German
-        quality_profiles:
+      # Not English
+      - trash_ids: ["0dc8aec3bd1c47cd6c40c46ecd27e846"]   # Language: Not English
+        assign_scores_to:
           - name: UHD Bluray + WEB
-            score: 100     # Prefer German-only releases
-            
+      # Audio
       - trash_ids:
-          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
-          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
-        quality_profiles:
+          # Uncomment the next section to enable Advanced Audio Formats
+          # - 496f355514737f7d83bf7aa4d24f8169 # TrueHD Atmos
+          # - 2f22d89048b01681dde8afe203bf2e95 # DTS X
+          # - 417804f7f2c4308c1f4c5d380d4c4475 # ATMOS (undefined)
+          # - 1af239278386be2919e1bcee0bde047e # DD+ ATMOS
+          # - 3cafb66171b47f226146a0770576870f # TrueHD
+          # - dcf3ec6938fa32445f590a4da84256cd # DTS-HD MA
+          # - a570d4a0e56a2874b64e5bfa55202a1b # FLAC
+          # - e7c2fcae07cbada050a0af3357491d7b # PCM
+          # - 8e109e50e0a0b83a5098b056e13bf6db # DTS-HD HRA
+          # - 185f1dd7264c4562b9022d963ac37424 # DD+
+          # - f9f847ac70a0af62ea4a08280b859636 # DTS-ES
+          # - 1c1a4c5e823891c75bc50380a6866f73 # DTS
+          # - 240770601cc226190c367ef59aba7463 # AAC
+          # - c2998bd0d90ed5621d8df281e839436e # DD
+        assign_scores_to:
           - name: UHD Bluray + WEB
-            score: 50      # Prefer German dual-language
-            
+      # Optional
       - trash_ids:
-          - 9172b2f683f6223e3a1846427b417a3d # Multi
-        quality_profiles:
+          - b6832f586342ef70d9c128d40c07b872 # Bad Dual Groups
+          - cc444569854e9de0b084ab2b8b1532b2 # Black and White Editions
+          - ae9b7c9ebde1f3bd336a8cbd1ec4c5e5 # No-RlsGroup
+          - 7357cf5161efbf8c4d5d0c30b4815ee2 # Obfuscated
+          - 5c44f52a8714fdd79bb4d98e2673be1f # Retags
+          - f537cf427b64c38c8e36298f657e4828 # Scene
+        assign_scores_to:
           - name: UHD Bluray + WEB
-            score: 0       # Allow multi-language releases
-            
       - trash_ids:
-          - 4eadb75fb23d09dfc0a8e3f687e72287 # Language: Not German or English
-        quality_profiles:
+          # Comment out the next line if you and all of your users' setups are fully DV compatible
+          - 923b6abef9b17f937fab56cfcf89e1f1 # DV (WEBDL)
+
+          # HDR10+ Boost - Uncomment the next two lines if any of your devices DO support HDR10+
+          # - b17886cb4158d9fea189859409975758 # HDR10Plus Boost
+          # - 55a5b50cb416dea5a50c4955896217ab # DV HDR10+ Boost
+        assign_scores_to:
           - name: UHD Bluray + WEB
-            score: -10000  # Block other languages
-          
-      # German 2160p release group preferences
+
+      # Optional SDR
+      # Only ever use ONE of the following custom formats:
+      # SDR - block ALL SDR releases
+      # SDR (no WEBDL) - block UHD/4k Remux and Bluray encode SDR releases, but allow SDR WEB
       - trash_ids:
-          - 3bc8df3a71baaac60a31ef696ea72d36 # German 2160p Booster
-        quality_profiles:
+          # - 9c38ebb7384dada637be8899efa68e6f # SDR
+          - 25c12f78430a3a23413652cbd1d48d77 # SDR (no WEBDL)
+        assign_scores_to:
           - name: UHD Bluray + WEB
-            score: 25      # Boost German 2160p releases
