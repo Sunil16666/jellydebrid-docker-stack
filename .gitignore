@@ -14,7 +14,7 @@ sonarr/2160p-en/
 sonarr/2160p-de/
 bazarr/config/
 rdtclient/db/
-downloads/
+downloads/*
 
 # Ignore letsencrypt for Traefik certs
 letsencrypt/
