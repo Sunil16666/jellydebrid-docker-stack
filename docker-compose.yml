@@ -355,28 +355,26 @@ services:
     networks:
       - traefik
 
-  # Configarr - Temporarily disabled, needs multi-instance configuration
-  # configarr:
-  #   image: ghcr.io/raydak-labs/configarr:latest
-  #   container_name: configarr
-  #   depends_on:
-  #     - sonarr-1080p-en
-  #     - sonarr-1080p-de
-  #     - sonarr-2160p-en
-  #     - sonarr-2160p-de
-  #     - radarr-1080p-en
-  #     - radarr-1080p-de
-  #     - radarr-2160p-en
-  #     - radarr-2160p-de
-  #   restart: unless-stopped
-  #   environment:
-  #     - TZ=${TZ}
-  #     - SONARR_API_KEY=${SONARR_API_KEY}
-  #     - RADARR_API_KEY=${RADARR_API_KEY}
-  #   volumes:
-  #     - ./configarr:/app/config
-  #   networks:
-  #     - traefik
+  # Configarr - Multi-instance custom format and quality profile management
+  configarr:
+    image: ghcr.io/raydak-labs/configarr:latest
+    container_name: configarr
+    depends_on:
+      - radarr-1080p-en
+      - radarr-1080p-de
+      - radarr-2160p-en
+      - radarr-2160p-de
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - RADARR_EN_1080P_API_KEY=${RADARR_EN_1080P_API_KEY}
+      - RADARR_DE_1080P_API_KEY=${RADARR_DE_1080P_API_KEY}
+      - RADARR_EN_2160P_API_KEY=${RADARR_EN_2160P_API_KEY}
+      - RADARR_DE_2160P_API_KEY=${RADARR_DE_2160P_API_KEY}
+    volumes:
+      - ./configarr:/app/config
+    networks:
+      - traefik
 
 networks:
   traefik:

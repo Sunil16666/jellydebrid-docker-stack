@@ -1,53 +1,244 @@
-# Configarr Configuration - Based on Official Templates
-# References TRaSH-Guides and Recyclarr templates for optimal configuration
+# Configarr Configuration - Multi-Instance Radarr Setup
+# HD Bluray + WEB Profile (1080p only) with Language-Specific Configurations
+# Based on TRaSH-Guides: https://trash-guides.info/Radarr/radarr-setup-quality-profiles/
 
 trashGuideUrl: https://github.com/TRaSH-Guides/Guides
 recyclarrConfigUrl: https://github.com/recyclarr/config-templates
 
-sonarr:
-  series:
-    # Set the URL/API Key to your actual instance
-    base_url: http://sonarr:8989
-    api_key: !env SONARR_API_KEY
-
-    # Quality definitions from the guide to sync to Sonarr
-    quality_definition:
-      type: series
-
-    include:
-      # Comment out any of the following includes to disable them
-      #### WEB-1080p (Most common setup)
-      - template: sonarr-quality-definition-series
-      - template: sonarr-v4-quality-profile-web-1080p
-      - template: sonarr-v4-custom-formats-web-1080p
-
-      #### WEB-2160p (4K content)
-      - template: sonarr-v4-quality-profile-web-2160p
-      - template: sonarr-v4-custom-formats-web-2160p
-
-    # Custom Formats: Add any additional custom formats if needed
-    custom_formats: []
-
 radarr:
-  movies:
-    # Set the URL/API Key to your actual instance
-    base_url: http://radarr:7878
-    api_key: !env RADARR_API_KEY
-
-    # Quality definitions from the guide to sync to Radarr
+  # English 1080p Instance
+  en-1080p:
+    base_url: http://radarr-1080p-en:7878
+    api_key: !env RADARR_EN_1080P_API_KEY
+    
     quality_definition:
       type: movie
-
+      
     include:
-      # Comment out any of the following includes to disable them
-      #### HD Bluray + WEB (Most common setup)
+      # Base HD Bluray + WEB templates
       - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-hd-bluray-web
       - template: radarr-custom-formats-hd-bluray-web
+      
+    # Override quality profiles to remove 720p and add English language preferences
+    quality_profiles:
+      - name: HD Bluray + WEB
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        # Only 1080p qualities - removed all 720p entries
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+        
+    # Add language-specific custom formats for English instance
+    custom_formats:
+      # Language preferences for English + allow Multi/Dual with English
+      - trash_ids:
+          - 87d0e4c6e31c0f8df4ff8c49d0b2c9f4 # Language: Not English
+        quality_profiles:
+          - name: HD Bluray + WEB
+            score: -10000  # Block non-English releases
+            
+      - trash_ids:
+          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
+          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
+        quality_profiles:
+          - name: HD Bluray + WEB
+            score: 0       # Allow German dual-language with English
+            
+      - trash_ids:
+          - 9172b2f683f6223e3a1846427b417a3d # Multi
+        quality_profiles:
+          - name: HD Bluray + WEB
+            score: 0       # Allow multi-language releases
+            
+  # German 1080p Instance  
+  de-1080p:
+    base_url: http://radarr-1080p-de:7878
+    api_key: !env RADARR_DE_1080P_API_KEY
+    
+    quality_definition:
+      type: movie
+      
+    include:
+      # Base HD Bluray + WEB templates
+      - template: radarr-quality-definition-movie
+      # Use German-specific template
+      - template: 2b90e905c99490edc7c7a5787443748b # German HD Bluray + WEB
+        source: TRASH
+      - template: radarr-custom-formats-hd-bluray-web
+      
+    # Override quality profiles to remove 720p
+    quality_profiles:
+      - name: "[German] HD Bluray + WEB"
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-1080p
+          until_score: 35000
+        min_format_score: 0
+        quality_sort: top
+        # Only 1080p qualities - removed all 720p entries
+        qualities:
+          - name: Bluray-1080p
+          - name: WEB 1080p
+            qualities:
+              - WEBDL-1080p
+              - WEBRip-1080p
+        
+    # Language-specific custom formats for German instance  
+    custom_formats:
+      # Enhance German language preferences
+      - trash_ids:
+          - 86bc3115eb4e9873ac96904a4a68e19e # Language: German
+        quality_profiles:
+          - name: "[German] HD Bluray + WEB"
+            score: 100     # Prefer German-only releases
+            
+      - trash_ids:
+          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
+          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
+        quality_profiles:
+          - name: "[German] HD Bluray + WEB"
+            score: 50      # Prefer German dual-language
+            
+      - trash_ids:
+          - 9172b2f683f6223e3a1846427b417a3d # Multi
+        quality_profiles:
+          - name: "[German] HD Bluray + WEB"
+            score: 0       # Allow multi-language releases
+            
+      - trash_ids:
+          - 4eadb75fb23d09dfc0a8e3f687e72287 # Language: Not German or English
+        quality_profiles:
+          - name: "[German] HD Bluray + WEB"
+            score: -10000  # Block other languages
 
-      #### 4K Bluray + WEB (Uncomment if you want 4K)
+  # English 2160p Instance
+  en-2160p:
+    base_url: http://radarr-2160p-en:7878
+    api_key: !env RADARR_EN_2160P_API_KEY
+    
+    quality_definition:
+      type: movie
+      
+    include:
+      # Base UHD Bluray + WEB templates for 2160p
+      - template: radarr-quality-definition-movie
       - template: radarr-quality-profile-uhd-bluray-web
       - template: radarr-custom-formats-uhd-bluray-web
-
-    # Custom Formats: Add any additional custom formats if needed
-    custom_formats: []
+      
+    # Override quality profiles for 2160p only
+    quality_profiles:
+      - name: UHD Bluray + WEB
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-2160p
+          until_score: 10000
+        min_format_score: 0
+        quality_sort: top
+        # Only 2160p qualities
+        qualities:
+          - name: Bluray-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+        
+    # Add language-specific custom formats for English 2160p instance
+    custom_formats:
+      # Language preferences for English + allow Multi/Dual with English
+      - trash_ids:
+          - 87d0e4c6e31c0f8df4ff8c49d0b2c9f4 # Language: Not English
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: -10000  # Block non-English releases
+            
+      - trash_ids:
+          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
+          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 0       # Allow German dual-language with English
+            
+      - trash_ids:
+          - 9172b2f683f6223e3a1846427b417a3d # Multi
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 0       # Allow multi-language releases
+            
+  # German 2160p Instance  
+  de-2160p:
+    base_url: http://radarr-2160p-de:7878
+    api_key: !env RADARR_DE_2160P_API_KEY
+    
+    quality_definition:
+      type: movie
+      
+    include:
+      # Base UHD Bluray + WEB templates for 2160p
+      - template: radarr-quality-definition-movie
+      - template: radarr-quality-profile-uhd-bluray-web
+      - template: radarr-custom-formats-uhd-bluray-web
+      
+    # Override quality profiles for 2160p only
+    quality_profiles:
+      - name: UHD Bluray + WEB
+        reset_unmatched_scores: true
+        upgrade:
+          allowed: true
+          until_quality: Bluray-2160p
+          until_score: 35000
+        min_format_score: 0
+        quality_sort: top
+        # Only 2160p qualities
+        qualities:
+          - name: Bluray-2160p
+          - name: WEB 2160p
+            qualities:
+              - WEBDL-2160p
+              - WEBRip-2160p
+        
+    # Language-specific custom formats for German 2160p instance  
+    custom_formats:
+      # Enhance German language preferences
+      - trash_ids:
+          - 86bc3115eb4e9873ac96904a4a68e19e # Language: German
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 100     # Prefer German-only releases
+            
+      - trash_ids:
+          - f845be10da4f442654c13e1f2c3d6cd5 # Language: German DL
+          - 6aad77771dabe9d3e9d7be86f310b867 # Language: German DL (undefined)
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 50      # Prefer German dual-language
+            
+      - trash_ids:
+          - 9172b2f683f6223e3a1846427b417a3d # Multi
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 0       # Allow multi-language releases
+            
+      - trash_ids:
+          - 4eadb75fb23d09dfc0a8e3f687e72287 # Language: Not German or English
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: -10000  # Block other languages
+          
+      # German 2160p release group preferences
+      - trash_ids:
+          - 3bc8df3a71baaac60a31ef696ea72d36 # German 2160p Booster
+        quality_profiles:
+          - name: UHD Bluray + WEB
+            score: 25      # Boost German 2160p releases
