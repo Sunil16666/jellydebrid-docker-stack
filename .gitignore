@@ -12,7 +12,10 @@ sonarr/1080p-en/
 sonarr/1080p-de/
 sonarr/2160p-en/
 sonarr/2160p-de/
-bazarr/config/
+bazarr/1080p-en/
+bazarr/1080p-de/
+bazarr/2160p-en/
+bazarr/2160p-de/
 rdtclient/db/
 downloads/*
 

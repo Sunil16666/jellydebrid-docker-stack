@@ -316,18 +316,12 @@ services:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads
 
-  bazarr:
+  bazarr-1080p-en:
     image: lscr.io/linuxserver/bazarr:latest
-    container_name: bazarr
+    container_name: bazarr-1080p-en
     depends_on:
       - sonarr-1080p-en
-      - sonarr-1080p-de
-      - sonarr-2160p-en
-      - sonarr-2160p-de
       - radarr-1080p-en
-      - radarr-1080p-de
-      - radarr-2160p-en
-      - radarr-2160p-de
     restart: unless-stopped
     ports:
       - "6767:6767"
@@ -336,7 +330,67 @@ services:
       - PGID=${PGID}
       - TZ=${TZ}
     volumes:
-      - ./bazarr/config:/config
+      - ./bazarr/1080p-en/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-1080p-de:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-1080p-de
+    depends_on:
+      - sonarr-1080p-de
+      - radarr-1080p-de
+    restart: unless-stopped
+    ports:
+      - "6768:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/1080p-de/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-2160p-en:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-2160p-en
+    depends_on:
+      - sonarr-2160p-en
+      - radarr-2160p-en
+    restart: unless-stopped
+    ports:
+      - "6769:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/2160p-en/config:/config
+      - ./jellyfin/media:/media
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-2160p-de:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-2160p-de
+    depends_on:
+      - sonarr-2160p-de
+      - radarr-2160p-de
+    restart: unless-stopped
+    ports:
+      - "6770:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/2160p-de/config:/config
       - ./jellyfin/media:/media
       - ./downloads:/downloads
     networks:
