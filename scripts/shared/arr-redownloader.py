@@ -21,10 +21,24 @@ class RadarrInstance:
         return {'ids': movie_ids}
 
     def fetch_queue(self) -> list[dict]:
-        """Fetch the current download queue from Radarr."""
+        """Fetch the current download queue from Radarr and normalize to list of records."""
         resp = requests.get(f"{self.url}/api/v3/queue", headers=self.get_custom_headers())
-        resp.raise_for_status()
-        return resp.json()
+        if resp.status_code != 200:
+            print(f"❌ {self.name}: queue HTTP {resp.status_code}\n{resp.text}")
+            return []
+        try:
+            data = resp.json()
+        except ValueError as ve:
+            print(f"❌ {self.name}: failed JSON decode: {ve}\n{resp.text}")
+            return []
+        # Radarr returns a dict with 'records'
+        if isinstance(data, dict) and 'records' in data:
+            return data['records']
+        if isinstance(data, list):
+            return data
+        print(f"❌ {self.name}: unexpected queue format (expected list or dict with records): {data}")
+        return []
+
 
 
 class SonarrInstance:
@@ -43,10 +57,23 @@ class SonarrInstance:
         return {'seriesIds': series_ids}
 
     def fetch_queue(self) -> list[dict]:
-        """Fetch the current download queue from Sonarr."""
+        """Fetch the current download queue from Sonarr and normalize to list records."""
         resp = requests.get(f"{self.url}/api/v3/queue", headers=self.get_custom_headers())
-        resp.raise_for_status()
-        return resp.json()
+        if resp.status_code != 200:
+            print(f"❌ {self.name}: queue HTTP {resp.status_code}\n{resp.text}")
+            return []
+        try:
+            data = resp.json()
+        except ValueError as ve:
+            print(f"❌ {self.name}: failed JSON decode: {ve}\n{resp.text}")
+            return []
+        # Sonarr may also return paged dict
+        if isinstance(data, dict) and 'records' in data:
+            return data['records']
+        if isinstance(data, list):
+            return data
+        print(f"❌ {self.name}: unexpected queue format (expected list or dict with records): {data}")
+        return []
 
 
 class RDTClient:
@@ -196,15 +223,14 @@ class ArrRedownloader:
         """Check torrent speeds and trigger redownloads for slow torrents, respecting progress safeguard."""
         torrents = { t['hash']: t for t in self.rdt.list_downloading() }
         num = len(torrents)
-        threshold = (self.bandwidth / max(num,1) / 1024) / 3  # KiB/s
+        threshold = self.bandwidth / max(num,1) / 1 # Just for testing purpose
         now = time.time()
 
         for h, data in torrents.items():
             progress = data.get('progress', 0.0)
             if progress >= self.SAFE_PROGRESS:
                 continue
-            
-            speed_kib = data['downloadSpeed'] / 1024
+            speed_kib = data['dlspeed'] / 1024
             state = self._torrent_state.setdefault(h, {'first_below': None, 'handled': False})
 
             if speed_kib < threshold:
