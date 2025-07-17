@@ -9,4 +9,4 @@ COPY scripts/shared/arr-redownloader.py .
 RUN pip install --no-cache-dir requests
 
 # default entrypoint
-CMD ["python", "arr_redownloader.py"]
+CMD ["python", "arr-redownloader.py"]
