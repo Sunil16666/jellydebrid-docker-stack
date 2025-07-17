@@ -1,5 +1,8 @@
 import os
 import requests
+import threading
+import time
+from collections import defaultdict
 
 class RadarrInstance:
     """Base class for Radarr instances with common functionality."""
@@ -65,13 +68,35 @@ class RDTClient:
 class ArrRedownloader:
     """Class to handle redownloading movies in Radarr instances."""
     
+    CHECK_INTERVAL = 10      # seconds between speed checks
+    RETRY_DELAY    = 60      # seconds below threshold before redownload
+    
     def __init__(self, rdtclient: RDTClient, radarr_instances: list[RadarrInstance], sonarr_instances: list[SonarrInstance], bandwidth: int = 175):
         self.rdtclient = rdtclient
         self.radarr_instances = radarr_instances
         self.sonarr_instances = sonarr_instances
         self.bandwidth = bandwidth
-        self.torrents = {} # Currently using torrent_hash as key to track torrents, may need to change to map correctly to sonarr and radarr instances
-        
+        #   { torrent_hash: { 'first_below': timestamp, 'handled': bool } }
+        self._torrent_state = {}
+
+        # mapping torrent_hash → [(instance_type, instance_obj, [media_ids]), ...]
+        self.mapping = defaultdict(list)
+
+        # start background monitoring
+        self._stop_event = threading.Event()
+        threading.Thread(target=self._monitor_loop, daemon=True).start()
+
+    def register_mapping(self, torrent_hash: str, instance_type: str, instance_obj, media_ids: list[int]):
+        """Call this when you add a torrent so we know which Arr instance & IDs to trigger."""
+        self.mapping[torrent_hash].append((instance_type, instance_obj, media_ids))
+    
+    def _monitor_loop(self):
+        """Runs in the background: check speeds, trigger retries, clean up."""
+        while not self._stop_event.is_set():
+            self._check_speeds_and_retry()
+            self._cleanup_finished()
+            time.sleep(self.CHECK_INTERVAL)
+    
     def del_queue_bulk_redownload_radarr(self, movie_ids: list[int]) -> bool:
         """Delete the queue for multiple movies and trigger redownload."""
         for instance in self.radarr_instances:
@@ -130,6 +155,15 @@ class ArrRedownloader:
                 return False
         return True
     
+    def _trigger_redownload(self, torrent_hash: str):
+        """Call the appropriate API for each registered mapping on this torrent."""
+        for instance_type, inst, media_ids in self.mapping.get(torrent_hash, []):
+            if instance_type == 'radarr':
+                ok = self.del_queue_bulk_redownload_radarr(media_ids)
+            else:
+                ok = self.del_queue_bulk_redownload_sonarr(media_ids)
+            print(f"🔄 Triggered redownload on {instance_type} {inst.name} for {media_ids}: {'OK' if ok else 'FAIL'}")
+    
     def check_download_speeds(self, movie_ids: list[int]) -> list[tuple]:
         """Check the download speed of a movie using RdtClient."""
         response = self.rdtclient.session.get(f'http://{self.rdtclient.url}/api/v2/torrents/info?filter=downloading')
@@ -146,47 +180,42 @@ class ArrRedownloader:
             return []
         return torrents_dl_speed
     
-    def get_download_num(self) -> int:
-        """Get the current number of downloads in progress."""
-        response = self.rdtclient.session.get(f'http://{self.rdtclient.url}/api/v2/torrents/info?filter=downloading')
-        response.raise_for_status()
-        resp_json = response.json()
-        return len(resp_json)
-    
-    def get_max_speed_dynamic(self) -> float:
-        """Get the current download ratio."""
-        download_num = self.get_download_num()
-        return self.bandwidth / download_num if download_num > 0 else 0.0
-    
-    def is_speed_lower_threshold(self, movie_ids: list[int]):
-        """Check if the download speed is below the threshold."""
-        threshold = self.get_max_speed_dynamic() / 3 # Dynamic threshold based on current download speed, can be adjusted and must be tested
-        torrents_dl_speed = self.check_download_speeds(movie_ids)
-        is_below_threshold = False
-        for torrent_id, speed in torrents_dl_speed:
-            if speed < threshold:
-                print(f"⚠️  Download speed for torrent {torrent_id} is below the threshold: {speed} < {threshold}")
-                self.torrents[torrent_id] = is_below_threshold
-        print("✅ All torrents are above the download speed threshold")
+    def _check_speeds_and_retry(self):
+        # 1) Fetch all downloading torrents
+        resp = self.rdtclient.session.get(f'http://{self.rdtclient.url}/api/v2/torrents/info?filter=downloading')
+        resp.raise_for_status()
+        torrents = { t['hash']: t for t in resp.json() }
 
-    def update_torrents(self):
-        """Get the list of torrents in the RDTClient."""
-        response = self.rdtclient.session.get(f'http://{self.rdtclient.url}/api/v2/torrents/info?')
-        response.raise_for_status()
-        resp_json = response.json()
-        torrents = []
-        for torrent in resp_json:
-            torrents.append(torrent['hash'])
-        if not torrents:
-            print("❌ No torrents found in RDTClient")
-            return
-        for trnt in self.torrents:
-            if trnt not in torrents:
-                rem_item = self.torrents.pop(trnt)
-                print(f"❌ Torrent {trnt} not found in RDTClient, removing{rem_item} from list")
-        print(f"✅ Found {len(self.torrents)} torrents in RDTClient")
-        if not self.torrents:
-            print("❌ No torrents found in RDTClient after filtering")
-            return
-        print("✅ Successfully updated torrents in RDTClient")
+        # 2) compute dynamic threshold
+        num = len(torrents)
+        threshold = (self.bandwidth / num / 1024) / 3 if num else 0  # KiB/s
+
+        now = time.time()
+        for h, data in torrents.items():
+            speed_kib = data['downloadSpeed'] / 1024
+
+            state = self._torrent_state.setdefault(h, {'first_below': None, 'handled': False})
+            if speed_kib < threshold:
+                # below threshold
+                if state['first_below'] is None:
+                    state['first_below'] = now
+                # if waited long enough and not yet handled
+                elif not state['handled'] and (now - state['first_below'] > self.RETRY_DELAY):
+                    self._trigger_redownload(h)
+                    state['handled'] = True
+            else:
+                # back above threshold → reset
+                state['first_below'], state['handled'] = None, False
+
+    def _cleanup_finished(self):
+        """Remove any hashes no longer present in rdtclient from our state & mapping."""
+        resp = self.rdtclient.session.get(f'http://{self.rdtclient.url}/api/v2/torrents/info')
+        resp.raise_for_status()
+        active = { t['hash'] for t in resp.json() }
+
+        # remove any that disappeared
+        for h in list(self._torrent_state):
+            if h not in active:
+                del self._torrent_state[h]
+                self.mapping.pop(h, None)
     
