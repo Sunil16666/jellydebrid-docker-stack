@@ -484,6 +484,7 @@ services:
       - GRACE_PERIOD=30
       - RETRY_COOLDOWN=30
       - DOWNLOAD_BANDWIDTH_KB=19000
+      - MIN_SPEED_THRESHOLD=1000
     networks:
       - traefik
       - vpn

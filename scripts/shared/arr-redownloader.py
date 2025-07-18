@@ -178,8 +178,25 @@ class ArrRedownloader:
     def _check_speeds_and_retry(self):
         torrents = {t['hash']: t for t in self.rdt.list_downloading()}
         count = len(torrents)
-        threshold = self.bandwidth / (count or 1) / 3
+        
+        # Calculate speeds
+        speeds = [t.get('dlspeed', 0) / 1024 for t in torrents.values()]
+        total_speed = sum(speeds)
+        avg_speed = total_speed / count if count > 0 else 0
+        
+        # Use minimum speed threshold instead of equal distribution
+        # This accounts for RDTClient's dynamic bandwidth allocation
+        MIN_SPEED_THRESHOLD = int(os.environ.get('MIN_SPEED_THRESHOLD', 1000))  # KiB/s
+        
+        # Only use bandwidth-based threshold if total speed is significantly below bandwidth
+        if total_speed < self.bandwidth * 0.7:  # 70% of bandwidth
+            threshold = self.bandwidth / (count or 1) / 3
+        else:
+            # Use minimum threshold or 25% of average (whichever is higher)
+            threshold = max(MIN_SPEED_THRESHOLD, avg_speed * 0.25)
+            
         now = time.time()
+        print(f"📈 Speed check: {count} torrents, total {total_speed:.1f} KiB/s, avg {avg_speed:.1f} KiB/s, threshold {threshold:.1f} KiB/s")
 
         for h, data in torrents.items():
             # skip if still in grace period
