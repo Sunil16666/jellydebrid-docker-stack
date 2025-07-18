@@ -50,6 +50,15 @@ downloads/radarr-2160p-en/*
 downloads/radarr-2160p-de/*
 !downloads/radarr-2160p-de/.gitkeep
 
+downloads/sonarr-1080p-en/*
+!downloads/sonarr-1080p-en/.gitkeep
+downloads/sonarr-1080p-de/*
+!downloads/sonarr-1080p-de/.gitkeep
+downloads/sonarr-2160p-en/*
+!downloads/sonarr-2160p-en/.gitkeep
+downloads/sonarr-2160p-de/*
+!downloads/sonarr-2160p-de/.gitkeep
+
 # Ignore letsencrypt for Traefik certs
 letsencrypt/
 

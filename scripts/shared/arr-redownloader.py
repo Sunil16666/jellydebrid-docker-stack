@@ -178,7 +178,7 @@ class ArrRedownloader:
     def _check_speeds_and_retry(self):
         torrents = {t['hash']: t for t in self.rdt.list_downloading()}
         count = len(torrents)
-        threshold = self.bandwidth / (count or 1) / 1  # test divisor=1
+        threshold = self.bandwidth / (count or 1) / 3
         now = time.time()
 
         for h, data in torrents.items():
