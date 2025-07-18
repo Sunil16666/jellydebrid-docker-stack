@@ -477,8 +477,13 @@ services:
       - SONARR_2160P_EN_KEY=${SONARR_EN_2160P_API_KEY}
       - SONARR_2160P_DE_URL=http://sonarr-2160p-de:8989
       - SONARR_2160P_DE_KEY=${SONARR_DE_2160P_API_KEY}
-      # Bandwidth limit
-      - DOWNLOAD_BANDWIDTH_KB=${RDTCLIENT_BANDWIDTH_KB}
+      # Arr-redownloader settings
+      - CHECK_INTERVAL=5
+      - RETRY_DELAY=30
+      - SAFE_PROGRESS=0.90
+      - GRACE_PERIOD=30
+      - RETRY_COOLDOWN=30
+      - DOWNLOAD_BANDWIDTH_KB=19000
     networks:
       - traefik
       - vpn
