@@ -122,7 +122,7 @@ class ArrRedownloader:
         self.sonarr_instances = sonarr_instances
         self.bandwidth = bandwidth
 
-        # state: hash → {first_below, handled}
+        # state: hash → {first_below, handled, safe_skip_until}
         self._torrent_state = {}
         # mapping: hash → [(type, instance, [queue_ids])]
         self.mapping = defaultdict(list)
@@ -214,10 +214,22 @@ class ArrRedownloader:
             speed_kib = data.get('dlspeed', 0) / 1024
             print(f"🔍 {h[:8]} prog {progress*100:.1f}% speed {speed_kib:.1f} KiB/s")
 
+            # Check if torrent reached safe progress - if so, skip monitoring for 4 minutes
+            state = self._torrent_state.setdefault(h, {'first_below': None, 'handled': False, 'safe_skip_until': 0})
+            
             if progress >= self.SAFE_PROGRESS:
+                if state['safe_skip_until'] == 0:  # First time reaching safe progress
+                    state['safe_skip_until'] = now + 240  # Skip for 4 minutes (240 seconds)
+                    print(f"🏁 {h[:8]} reached {progress*100:.1f}% - skipping monitoring for 4 minutes")
+                continue
+            
+            # Check if we're still in the safe skip period
+            if now < state['safe_skip_until']:
+                remaining = state['safe_skip_until'] - now
+                print(f"⏭️ Skipping {h[:8]}: in safe completion period ({remaining:.0f}s remaining)")
                 continue
 
-            state = self._torrent_state.setdefault(h, {'first_below': None, 'handled': False})
+            # Continue with normal speed checking
             if speed_kib < threshold:
                 if state['first_below'] is None:
                     state['first_below'] = now
@@ -226,6 +238,7 @@ class ArrRedownloader:
                     self._trigger_redownload(h)
                     state['handled'] = True
             else:
+                # Reset the slow tracking when speed is good
                 state.update({'first_below': None, 'handled': False})
 
     def _cleanup_finished(self):
