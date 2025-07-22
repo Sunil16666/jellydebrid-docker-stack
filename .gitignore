@@ -102,3 +102,6 @@ acme.json
 
 # Ignore backups
 backups/
+
+# Ignore Dozzle authentication file
+dozzle/users.yml
