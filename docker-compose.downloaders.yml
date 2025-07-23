@@ -1,0 +1,84 @@
+services:
+  rdtclient:
+    image: rogerfar/rdtclient:latest
+    container_name: rdtclient
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    depends_on:
+      - prowlarr
+      - gluetun
+    environment:
+      - TZ=${TZ}
+      - USER_UID=${PUID}
+      - USER_GID=${PGID}
+    volumes:
+      - ./rdtclient/db:/data/db
+      - ./downloads:/downloads
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:v3.3.19
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - "8191:8191"
+    environment:
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=none
+      - TZ=${TZ}
+    networks:
+      - traefik
+
+  arr-redownloader:
+    build:
+      context: .
+      dockerfile: Dockerfile.arr-redownloader
+    container_name: arr-redownloader
+    restart: unless-stopped
+    volumes:
+      - ./scripts/shared/arr-redownloader.py:/app/arr-redownloader.py:ro
+      - ./scripts:/app/scripts:ro
+    depends_on:
+      - rdtclient
+      - gluetun
+      - sonarr-1080p-en
+      - sonarr-1080p-de
+      - sonarr-2160p-en
+      - sonarr-2160p-de
+      - radarr-1080p-en
+      - radarr-1080p-de
+      - radarr-2160p-en
+      - radarr-2160p-de
+    environment:
+      # RDTClient
+      - RDTCLIENT_USERNAME=${RDTCLIENT_USERNAME}
+      - RDTCLIENT_PASSWORD=${RDTCLIENT_PASSWORD}
+      - RDTCLIENT_HOST=${RDTCLIENT_HOST}
+      # Radarr URLs & keys (match your compose ports)
+      - RADARR_1080P_EN_URL=http://radarr-1080p-en:7878
+      - RADARR_1080P_EN_KEY=${RADARR_EN_1080P_API_KEY}
+      - RADARR_1080P_DE_URL=http://radarr-1080p-de:7878
+      - RADARR_1080P_DE_KEY=${RADARR_DE_1080P_API_KEY}
+      - RADARR_2160P_EN_URL=http://radarr-2160p-en:7878
+      - RADARR_2160P_EN_KEY=${RADARR_EN_2160P_API_KEY}
+      - RADARR_2160P_DE_URL=http://radarr-2160p-de:7878
+      - RADARR_2160P_DE_KEY=${RADARR_DE_2160P_API_KEY}
+      # Sonarr URLs & keys
+      - SONARR_1080P_EN_URL=http://sonarr-1080p-en:8989
+      - SONARR_1080P_EN_KEY=${SONARR_EN_1080P_API_KEY}
+      - SONARR_1080P_DE_URL=http://sonarr-1080p-de:8989
+      - SONARR_1080P_DE_KEY=${SONARR_DE_1080P_API_KEY}
+      - SONARR_2160P_EN_URL=http://sonarr-2160p-en:8989
+      - SONARR_2160P_EN_KEY=${SONARR_EN_2160P_API_KEY}
+      - SONARR_2160P_DE_URL=http://sonarr-2160p-de:8989
+      - SONARR_2160P_DE_KEY=${SONARR_DE_2160P_API_KEY}
+      # Arr-redownloader settings
+      - CHECK_INTERVAL=5
+      - RETRY_DELAY=30
+      - SAFE_PROGRESS=0.90
+      - GRACE_PERIOD=30
+      - RETRY_COOLDOWN=30
+      - DOWNLOAD_BANDWIDTH_KB=19000
+      - MIN_SPEED_THRESHOLD=1000
+    networks:
+      - traefik
+      - vpn

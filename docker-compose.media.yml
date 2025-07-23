@@ -1,0 +1,51 @@
+services:
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - ./jellyfin/media:/media
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for jellyfin.jellystream.net
+      - "traefik.http.routers.jellyfin.rule=Host(`${JELLYFIN_DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.middlewares=ratelimit@docker"
+      # — HTTP router that simply redirects to HTTPS
+      - "traefik.http.routers.jellyfin-web.rule=Host(`${JELLYFIN_DOMAIN}`)"
+      - "traefik.http.routers.jellyfin-web.entrypoints=web"
+      - "traefik.http.routers.jellyfin-web.middlewares=redirect-to-https@docker"
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+    volumes:
+      - ./jellyseerr/config:/app/config
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for jellyseerr.jellystream.net
+      - "traefik.http.routers.jellyseerr.rule=Host(`${JELLYSEERR_DOMAIN}`)"
+      - "traefik.http.routers.jellyseerr.entrypoints=websecure"
+      - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+      - "traefik.http.routers.jellyseerr.middlewares=ratelimit@docker"
+      # — HTTP → HTTPS redirect
+      - "traefik.http.routers.jellyseerr-web.rule=Host(`${JELLYSEERR_DOMAIN}`)"
+      - "traefik.http.routers.jellyseerr-web.entrypoints=web"
+      - "traefik.http.routers.jellyseerr-web.middlewares=redirect-to-https@docker"
