@@ -77,7 +77,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./sonarr/1080p-en:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro  # Custom scripts directory
     networks:
@@ -97,7 +97,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./sonarr/1080p-de:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -117,7 +117,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./sonarr/2160p-en:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -137,7 +137,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./sonarr/2160p-de:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -158,7 +158,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./radarr/1080p-en:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -178,7 +178,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./radarr/1080p-de:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -198,7 +198,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./radarr/2160p-en:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -218,7 +218,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./radarr/2160p-de:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
       - ./scripts:/scripts:ro
     networks:
@@ -263,7 +263,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./bazarr/1080p-en/config:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
     networks:
       - traefik
@@ -283,7 +283,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./bazarr/1080p-de/config:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
     networks:
       - traefik
@@ -303,7 +303,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./bazarr/2160p-en/config:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
     networks:
       - traefik
@@ -323,7 +323,7 @@ services:
       - TZ=${TZ}
     volumes:
       - ./bazarr/2160p-de/config:/config
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
       - ./downloads:/downloads
     networks:
       - traefik
