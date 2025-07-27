@@ -366,7 +366,7 @@ services:
     volumes:
       - ./jellyfin/config:/config
       - ./jellyfin/cache:/cache
-      - ./jellyfin/media:/media
+      - /mnt/media/jellyfin/media:/media:rw
     networks:
       - traefik
     labels:
