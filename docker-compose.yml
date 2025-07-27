@@ -1,0 +1,21 @@
+# JellyDebrid Docker Stack - Main Compose File
+# Use: docker-compose up -d
+# Or split usage: docker-compose -f
+#                 docker-compose.core.yml -f
+#                 docker-compose.media.yml -f
+#                 docker-compose.arr.yml -f
+#                 docker-compose.downloaders.yml -f
+#                 docker-compose.monitoring.yml up -d
+
+include:
+  - docker-compose.core.yml         # Core infra (Traefik, Gluetun)
+  - docker-compose.media.yml        # Media server frontends (Jellyfin, Jellyseerr)
+  - docker-compose.arr.yml          # Arr services (Sonarr, Radarr, Bazarr, Prowlarr, Configarr)
+  - docker-compose.downloaders.yml  # Download services (RdtClient, Flaresolverr, arr-redownloader)
+  - docker-compose.monitoring.yml   # Monitoring (Dozzle)
+
+networks:
+  traefik:
+    driver: bridge
+  vpn:
+    driver: bridge

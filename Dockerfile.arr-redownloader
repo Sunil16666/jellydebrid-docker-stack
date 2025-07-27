@@ -1,0 +1,12 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# copy only your script and requirements
+COPY scripts/shared/arr-redownloader.py .
+
+# install deps
+RUN pip install --no-cache-dir requests
+
+# default entrypoint
+CMD ["python", "-u", "arr-redownloader.py"]

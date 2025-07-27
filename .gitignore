@@ -1,0 +1,107 @@
+# Ignore Docker volumes and app data
+jellyfin/*
+!jellyfin/.gitkeep
+
+jellyseerr/*
+!jellyseerr/.gitkeep
+
+prowlarr/*
+!prowlarr/.gitkeep
+
+radarr/1080p-en/*
+!radarr/1080p-en/.gitkeep
+radarr/1080p-de/*
+!radarr/1080p-de/.gitkeep
+radarr/2160p-en/*
+!radarr/2160p-en/.gitkeep
+radarr/2160p-de/*
+!radarr/2160p-de/.gitkeep
+
+sonarr/1080p-en/*
+!sonarr/1080p-en/.gitkeep
+sonarr/1080p-de/*
+!sonarr/1080p-de/.gitkeep
+sonarr/2160p-en/*
+!sonarr/2160p-en/.gitkeep
+sonarr/2160p-de/*
+!sonarr/2160p-de/.gitkeep
+
+bazarr/1080p-en/*
+!bazarr/1080p-en/.gitkeep
+bazarr/1080p-de/*
+!bazarr/1080p-de/.gitkeep
+bazarr/2160p-en/*
+!bazarr/2160p-en/.gitkeep
+bazarr/2160p-de/*
+!bazarr/2160p-de/.gitkeep
+
+rdtclient/*
+!rdtclient/.gitkeep
+
+traefik/*
+!traefik/.gitkeep
+
+downloads/radarr-1080p-en/*
+!downloads/radarr-1080p-en/.gitkeep
+downloads/radarr-1080p-de/*
+!downloads/radarr-1080p-de/.gitkeep
+downloads/radarr-2160p-en/*
+!downloads/radarr-2160p-en/.gitkeep
+downloads/radarr-2160p-de/*
+!downloads/radarr-2160p-de/.gitkeep
+
+downloads/sonarr-1080p-en/*
+!downloads/sonarr-1080p-en/.gitkeep
+downloads/sonarr-1080p-de/*
+!downloads/sonarr-1080p-de/.gitkeep
+downloads/sonarr-2160p-en/*
+!downloads/sonarr-2160p-en/.gitkeep
+downloads/sonarr-2160p-de/*
+!downloads/sonarr-2160p-de/.gitkeep
+
+# Ignore letsencrypt for Traefik certs
+letsencrypt/
+
+# Ignore logs
+*.log
+
+# Ignore .env files (CRITICAL SECURITY)
+.env
+.env.local
+.env.*.local
+.env.backup
+
+# Ignore VPN configuration files
+gluetun/servers.json
+*.ovpn
+
+# Ignore database files
+*.db
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite3
+
+# Ignore SSL certificates and keys
+*.pem
+*.crt
+*.key
+acme.json
+
+# Ignore backup files
+*/backup/
+*/restore/
+*.bak
+
+# OS and IDE files
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Ignore backups
+backups/
+
+# Ignore Dozzle authentication file
+dozzle/users.yml
