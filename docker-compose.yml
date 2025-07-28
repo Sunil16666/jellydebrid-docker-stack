@@ -22,7 +22,7 @@ services:
     ports:
       - "80:80" 
       - "443:443"
-      - "127.0.0.1:8080:8080"
+      - "0.0.0.0:8080:8080"
     environment:
       - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
     dns:
@@ -61,7 +61,7 @@ services:
       - vpn
       - traefik
     ports:
-      - "6500:6500"
+      - "0.0.0.0:6500:6500"
 
   sonarr-1080p-en:
     image: lscr.io/linuxserver/sonarr:latest
@@ -70,7 +70,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "8989:8989"
+      - "0.0.0.0:8989:8989"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -90,7 +90,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "8990:8989"
+      - "0.0.0.0:8990:8989"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -110,7 +110,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "8991:8989"
+      - "0.0.0.0:8991:8989"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -130,7 +130,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "8992:8989"
+      - "0.0.0.0:8992:8989"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -151,7 +151,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "7878:7878"
+      - "0.0.0.0:7878:7878"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -171,7 +171,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "7879:7878"
+      - "0.0.0.0:7879:7878"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -191,7 +191,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "7880:7878"
+      - "0.0.0.0:7880:7878"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -211,7 +211,7 @@ services:
       - jellyfin
     restart: unless-stopped
     ports:
-      - "7881:7878"
+      - "0.0.0.0:7881:7878"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -238,7 +238,7 @@ services:
       - radarr-2160p-de
     restart: unless-stopped
     ports:
-      - "9696:9696"
+      - "0.0.0.0:9696:9696"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -256,7 +256,7 @@ services:
       - radarr-1080p-en
     restart: unless-stopped
     ports:
-      - "6767:6767"
+      - "0.0.0.0:6767:6767"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -276,7 +276,7 @@ services:
       - radarr-1080p-de
     restart: unless-stopped
     ports:
-      - "6768:6767"
+      - "0.0.0.0:6768:6767"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -296,7 +296,7 @@ services:
       - radarr-2160p-en
     restart: unless-stopped
     ports:
-      - "6769:6767"
+      - "0.0.0.0:6769:6767"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -316,7 +316,7 @@ services:
       - radarr-2160p-de
     restart: unless-stopped
     ports:
-      - "6770:6767"
+      - "0.0.0.0:6770:6767"
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -429,7 +429,7 @@ services:
     container_name: flaresolverr
     restart: unless-stopped
     ports:
-      - "8191:8191"
+      - "0.0.0.0:8191:8191"
     environment:
       - LOG_LEVEL=info
       - CAPTCHA_SOLVER=none
@@ -497,7 +497,7 @@ services:
     container_name: dozzle
     restart: unless-stopped
     ports:
-      - "127.0.0.1:9999:8080"
+      - "0.0.0.0:9999:8080"
     environment:
       - DOZZLE_LEVEL=info
       - DOZZLE_FILTER="name=^/?(traefik|jellyfin|jellyseerr|sonarr|radarr|bazarr|prowlarr|rdtclient|arr-redownloader|gluetun|flaresolverr|configarr).*"
