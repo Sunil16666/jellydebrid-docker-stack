@@ -38,7 +38,7 @@ bazarr/2160p-de/*
 rdtclient/*
 !rdtclient/.gitkeep
 
-traefik/*
+traefik/logs
 !traefik/.gitkeep
 
 downloads/radarr-1080p-en/*

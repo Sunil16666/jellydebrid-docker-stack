@@ -8,6 +8,8 @@ services:
       - --api.dashboard=true
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
+      - --providers.file.watch=true
+      - --providers.file.filename=/dynamic.yml
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
       - --certificatesresolvers.cloudflare.acme.dnschallenge=true
@@ -19,6 +21,8 @@ services:
       - --log.level=DEBUG
       - --accesslog
       - --accesslog.filepath=/var/log/traefik/access.log
+      - --experimental.plugins.geoblock.modulename=github.com/PascalMinder/GeoBlock
+      - --experimental.plugins.geoblock.version=v0.2.2
     ports:
       - "80:80" 
       - "443:443"
@@ -33,6 +37,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./letsencrypt:/letsencrypt
       - ./traefik/logs:/var/log/traefik
+      - ./traefik/dynamic.yml:/dynamic.yml:ro
     networks:
       - traefik
     labels:
@@ -380,7 +385,7 @@ services:
       - "traefik.http.routers.jellyfin.entrypoints=websecure"
       - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
-      - "traefik.http.routers.jellyfin.middlewares=ratelimit@docker"
+      - "traefik.http.routers.jellyfin.middlewares=geoblock-allowed@file,ratelimit@docker"
       # — HTTP router that simply redirects to HTTPS
       - "traefik.http.routers.jellyfin-web.rule=Host(`${JELLYFIN_DOMAIN}`)"
       - "traefik.http.routers.jellyfin-web.entrypoints=web"
@@ -408,7 +413,7 @@ services:
       - "traefik.http.routers.jellyseerr.entrypoints=websecure"
       - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
       - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
-      - "traefik.http.routers.jellyseerr.middlewares=ratelimit@docker"
+      - "traefik.http.routers.jellyseerr.middlewares=geoblock-allowed@file,ratelimit@docker"
       # — HTTP → HTTPS redirect
       - "traefik.http.routers.jellyseerr-web.rule=Host(`${JELLYSEERR_DOMAIN}`)"
       - "traefik.http.routers.jellyseerr-web.entrypoints=web"

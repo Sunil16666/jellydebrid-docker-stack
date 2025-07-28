@@ -1,0 +1,53 @@
+# Traefik Dynamic Configuration for GeoBlock Integration
+# This file configures the geo-block plugin for Jellyfin and Jellyseerr to allow only German traffic
+
+http:
+  middlewares:
+    # Enhanced rate limiting middleware
+    enhanced-ratelimit:
+      rateLimit:
+        average: 30
+        period: "1m"
+        burst: 100
+        sourceCriterion:
+          ipStrategy:
+            depth: 2
+            excludedIPs:
+              - "127.0.0.1/32"
+              - "10.0.0.0/8"
+              - "172.16.0.0/12"
+              - "192.168.0.0/16"
+
+    # Geo-blocking middleware - Allow only Germany
+    geoblock-allowed:
+      plugin:
+        geoblock:
+          allowLocalRequests: true
+          logLocalRequests: true
+          logAllowedRequests: true
+          logApiRequests: true
+          api: "https://get.geojs.io/v1/ip/country/{ip}"
+          apiTimeoutMs: 750
+          cacheSize: 15
+          forceMonthlyUpdate: true
+          allowUnknownCountries: false
+          unknownCountryApiResponse: "nil"
+          countries:
+            - DE  # Germany only
+
+# TLS Configuration
+tls:
+  options:
+    default:
+      minVersion: "VersionTLS12"
+      maxVersion: "VersionTLS13"
+      cipherSuites:
+        - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+        - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+        - "TLS_RSA_WITH_AES_256_GCM_SHA384"
+        - "TLS_RSA_WITH_AES_128_GCM_SHA256"
+      alpnProtocols:
+        - "h2"
+        - "http/1.1"
+        - "acme-tls/1"
