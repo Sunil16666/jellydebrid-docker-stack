@@ -361,8 +361,12 @@ services:
     image: jellyfin/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    ports:
+      - "0.0.0.0:8096:8096"  # Direct access for debugging
     environment:
       - TZ=${TZ}
+    devices:
+      - /dev/dri:/dev/dri  # Intel QSV/VAAPI hardware acceleration
     volumes:
       - ./jellyfin/config:/config
       - ./jellyfin/cache:/cache
@@ -388,6 +392,8 @@ services:
     depends_on:
       - jellyfin
     restart: unless-stopped
+    ports:
+      - "0.0.0.0:5055:5055"  # Direct access for debugging
     environment:
       - LOG_LEVEL=info
       - TZ=${TZ}
@@ -418,8 +424,8 @@ services:
       - gluetun
     environment:
       - TZ=${TZ}
-      - USER_UID=${PUID}
-      - USER_GID=${PGID}
+      - PUID=${PUID}
+      - PGID=${PGID}
     volumes:
       - ./rdtclient/db:/data/db
       - ./downloads:/downloads
