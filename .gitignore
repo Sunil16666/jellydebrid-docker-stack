@@ -60,7 +60,8 @@ downloads/sonarr-2160p-de/*
 !downloads/sonarr-2160p-de/.gitkeep
 
 # Ignore letsencrypt for Traefik certs
-letsencrypt/
+letsencrypt/*
+!letsencrypt/.gitkeep
 
 # Ignore logs
 *.log
