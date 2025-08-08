@@ -376,6 +376,7 @@ services:
       - ./jellyfin/config:/config
       - ./jellyfin/cache:/cache
       - /mnt/media/jellyfin/media:/media:rw
+      - /usr/lib/dri:/usr/lib/dri
     networks:
       - traefik
     labels:
