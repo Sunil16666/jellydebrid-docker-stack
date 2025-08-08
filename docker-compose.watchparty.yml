@@ -82,7 +82,7 @@ services:
       - "traefik.http.routers.watchparty.entrypoints=websecure"
       - "traefik.http.routers.watchparty.tls.certresolver=cloudflare"
       - "traefik.http.services.watchparty.loadbalancer.server.port=8080"
-      - "traefik.http.routers.watchparty.middlewares=authelia@docker,watchparty-ratelimit@file"
+      - "traefik.http.routers.watchparty.middlewares=authelia@docker,watchparty-ratelimit@file,geoblock-allowed@file"
       - "traefik.http.routers.watchparty-web.rule=Host(`${WATCHPARTY_DOMAIN}`)"
       - "traefik.http.routers.watchparty-web.entrypoints=web"
       - "traefik.http.routers.watchparty-web.middlewares=redirect-to-https@docker"
