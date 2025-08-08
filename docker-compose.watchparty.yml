@@ -1,0 +1,95 @@
+services:
+  watchparty-postgres:
+    image: postgres:15-alpine
+    container_name: watchparty-postgres
+    restart: unless-stopped
+    environment:
+      - POSTGRES_USER=watchparty
+      - POSTGRES_PASSWORD=watchparty
+      - POSTGRES_DB=watchparty
+    volumes:
+      - watchparty_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U watchparty"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - watchparty-internal
+
+  watchparty-redis:
+    image: redis:7-alpine
+    container_name: watchparty-redis
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - watchparty_redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - watchparty-internal
+
+  watchparty:
+    build:
+      context: .
+      dockerfile: Dockerfile.watchparty
+    container_name: watchparty
+    restart: unless-stopped
+    depends_on:
+      watchparty-postgres:
+        condition: service_healthy
+      watchparty-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - PORT=8080
+      - HOST=0.0.0.0
+      - SHARD=1
+      - BUILD_DIRECTORY=build
+      - DATABASE_URL=postgresql://watchparty:watchparty@watchparty-postgres:5432/watchparty?sslmode=disable
+      - REDIS_URL=redis://watchparty-redis:6379
+      - VM_MANAGER_CONFIG=
+      - STATS_KEY=your-secret-stats-key
+      # Remove WatchParty authentication - handled by Authelia
+      - BETA_USER_EMAILS=
+      - FREE_ROOM_LIMIT=10
+      - SUBSCRIBER_ROOM_LIMIT=20
+      - ROOM_CAPACITY=20
+      # Optional features - add API keys as needed
+      - OPENSUBTITLES_KEY=
+      - YOUTUBE_API_KEY=$(YOUTUBE_API_KEY)
+      # Disable unused features
+      - RECAPTCHA_SECRET_KEY=
+      - FIREBASE_ADMIN_SDK_CONFIG=
+      - FIREBASE_DATABASE_URL=
+      - STRIPE_SECRET_KEY=
+      - VBROWSER_SESSION_SECONDS=0
+      - VBROWSER_SESSION_SECONDS_LARGE=0
+    expose:
+      - "8080"
+    networks:
+      - traefik
+      - watchparty-internal
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.watchparty.rule=Host(`${WATCHPARTY_DOMAIN}`)"
+      - "traefik.http.routers.watchparty.entrypoints=websecure"
+      - "traefik.http.routers.watchparty.tls.certresolver=cloudflare"
+      - "traefik.http.services.watchparty.loadbalancer.server.port=8080"
+      - "traefik.http.routers.watchparty.middlewares=authelia@docker,geoblock-allowed@file,ratelimit@docker"
+      - "traefik.http.routers.watchparty-web.rule=Host(`${WATCHPARTY_DOMAIN}`)"
+      - "traefik.http.routers.watchparty-web.entrypoints=web"
+      - "traefik.http.routers.watchparty-web.middlewares=redirect-to-https@docker"
+
+volumes:
+  watchparty_postgres_data:
+  watchparty_redis_data:
+
+networks:
+  traefik:
+    external: true
+  watchparty-internal:
+    driver: bridge
