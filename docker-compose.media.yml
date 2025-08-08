@@ -457,33 +457,6 @@ services:
   #     - traefik
   #     - vpn
 
-  dozzle:
-    image: amir20/dozzle:latest
-    container_name: dozzle
-    restart: unless-stopped
-    ports:
-      - "0.0.0.0:9999:8080"
-    environment:
-      - DOZZLE_LEVEL=info
-      - DOZZLE_FILTER="name=^/?(traefik|jellyfin|jellyseerr|sonarr|radarr|bazarr|prowlarr|rdtclient|arr-redownloader|gluetun|flaresolverr|configarr).*"
-      - DOZZLE_ENABLE_ACTIONS=true
-      - DOZZLE_ENABLE_SHELL=true
-      - DOZZLE_AUTH_PROVIDER=simple
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./dozzle/users.yml:/data/users.yml:ro
-      # Log directories
-      - ./bazarr:/logs/bazarr:ro
-      - ./jellyfin/config/log:/logs/jellyfin:ro
-      - ./jellyseerr/config/logs:/logs/jellyseerr:ro
-      - ./prowlarr/config/logs:/logs/prowlarr:ro
-      - ./radarr:/logs/radarr:ro
-      - ./rdtclient/db:/logs/rdtclient:ro
-      - ./sonarr:/logs/sonarr:ro
-      - ./traefik/logs:/logs/traefik:ro
-    networks:
-      - traefik
-
 networks:
   traefik:
     external: true
