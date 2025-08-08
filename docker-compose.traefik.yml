@@ -1,0 +1,54 @@
+services:
+  traefik:
+    image: traefik:v2.11
+    container_name: traefik
+    restart: unless-stopped
+    command:
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker=true
+      - --providers.docker.exposedbydefault=false
+      - --providers.file.watch=true
+      - --providers.file.filename=/dynamic.yml
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --certificatesresolvers.cloudflare.acme.dnschallenge=true
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.provider=cloudflare
+      - --certificatesresolvers.cloudflare.acme.dnschallenge.delaybeforecheck=10
+      - --certificatesresolvers.cloudflare.acme.email=${ACME_EMAIL}
+      - --certificatesresolvers.cloudflare.acme.storage=/letsencrypt/acme.json
+      - --certificatesresolvers.cloudflare.acme.caserver=https://acme-v02.api.letsencrypt.org/directory
+      - --log.level=DEBUG
+      - --accesslog
+      - --accesslog.filepath=/var/log/traefik/access.log
+      - --experimental.plugins.geoblock.modulename=github.com/PascalMinder/GeoBlock
+      - --experimental.plugins.geoblock.version=v0.2.2
+    ports:
+      - "80:80" 
+      - "443:443"
+      - "0.0.0.0:8080:8080"
+    environment:
+      - CF_DNS_API_TOKEN=${CF_DNS_API_TOKEN}
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+      - 1.0.0.1
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./letsencrypt:/letsencrypt
+      - ./traefik/logs:/var/log/traefik
+      - ./traefik/dynamic.yml:/dynamic.yml:ro
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=10"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
+      - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth"
+      - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
+      - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name"
+
+networks:
+  traefik:
+    external: true

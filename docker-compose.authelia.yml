@@ -1,0 +1,25 @@
+services:
+  authelia:
+    image: authelia/authelia:latest
+    container_name: authelia
+    restart: unless-stopped
+    volumes:
+      - ./authelia:/config
+    environment:
+      - TZ=${TZ}
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.authelia.rule=Host(`${AUTHELIA_DOMAIN}`)"
+      - "traefik.http.routers.authelia.entrypoints=websecure"
+      - "traefik.http.routers.authelia.tls.certresolver=cloudflare"
+      - "traefik.http.services.authelia.loadbalancer.server.port=9091"
+      # HTTP to HTTPS redirect
+      - "traefik.http.routers.authelia-web.rule=Host(`${AUTHELIA_DOMAIN}`)"
+      - "traefik.http.routers.authelia-web.entrypoints=web"
+      - "traefik.http.routers.authelia-web.middlewares=redirect-to-https@docker"
+
+networks:
+  traefik:
+    external: true

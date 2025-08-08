@@ -1,4 +1,7 @@
 # Ignore Docker volumes and app data
+authelia/*
+!authelia/.gitkeep
+
 jellyfin/*
 !jellyfin/.gitkeep
 

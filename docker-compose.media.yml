@@ -1,0 +1,491 @@
+services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    environment:
+      - TZ=${TZ}
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - WIREGUARD_ADDRESSES=${WIREGUARD_ADDRESSES}
+      - SERVER_COUNTRIES=${WIREGUARD_COUNTRIES}
+      - PORT_FORWARDING=on
+      - PORT_FORWARD_ONLY=on
+    volumes:
+      - ./gluetun:/gluetun
+    networks:
+      - vpn
+      - traefik
+    ports:
+      - "0.0.0.0:6500:6500"
+
+  sonarr-1080p-en:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr-1080p-en
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8989:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr/1080p-en:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro  # Custom scripts directory
+    networks:
+      - traefik
+
+  sonarr-1080p-de:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr-1080p-de
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8990:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr/1080p-de:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  sonarr-2160p-en:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr-2160p-en
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8991:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr/2160p-en:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  sonarr-2160p-de:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr-2160p-de
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8992:8989"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./sonarr/2160p-de:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  # Radarr Instances - Multiple for quality/language combinations
+  radarr-1080p-en:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr-1080p-en
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:7878:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr/1080p-en:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  radarr-1080p-de:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr-1080p-de
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:7879:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr/1080p-de:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  radarr-2160p-en:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr-2160p-en
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:7880:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr/2160p-en:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  radarr-2160p-de:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr-2160p-de
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:7881:7878"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./radarr/2160p-de:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+      - ./scripts:/scripts:ro
+    networks:
+      - traefik
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    depends_on:
+      - sonarr-1080p-en
+      - sonarr-1080p-de
+      - sonarr-2160p-en
+      - sonarr-2160p-de
+      - radarr-1080p-en
+      - radarr-1080p-de
+      - radarr-2160p-en
+      - radarr-2160p-de
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:9696:9696"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./prowlarr/config:/config
+    networks:
+      - traefik
+
+  bazarr-1080p-en:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-1080p-en
+    depends_on:
+      - sonarr-1080p-en
+      - radarr-1080p-en
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6767:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/1080p-en/config:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-1080p-de:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-1080p-de
+    depends_on:
+      - sonarr-1080p-de
+      - radarr-1080p-de
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6768:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/1080p-de/config:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-2160p-en:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-2160p-en
+    depends_on:
+      - sonarr-2160p-en
+      - radarr-2160p-en
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6769:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/2160p-en/config:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  bazarr-2160p-de:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr-2160p-de
+    depends_on:
+      - sonarr-2160p-de
+      - radarr-2160p-de
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:6770:6767"
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ./bazarr/2160p-de/config:/config
+      - /mnt/media/jellyfin/media:/media:rw
+      - ./downloads:/downloads
+    networks:
+      - traefik
+
+  # Configarr - Multi-instance custom format and quality profile management
+  configarr:
+    image: ghcr.io/raydak-labs/configarr:latest
+    container_name: configarr
+    depends_on:
+      - radarr-1080p-en
+      - radarr-1080p-de
+      - radarr-2160p-en
+      - radarr-2160p-de
+      - sonarr-1080p-en
+      - sonarr-1080p-de
+      - sonarr-2160p-en
+      - sonarr-2160p-de
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - RADARR_EN_1080P_API_KEY=${RADARR_EN_1080P_API_KEY}
+      - RADARR_DE_1080P_API_KEY=${RADARR_DE_1080P_API_KEY}
+      - RADARR_EN_2160P_API_KEY=${RADARR_EN_2160P_API_KEY}
+      - RADARR_DE_2160P_API_KEY=${RADARR_DE_2160P_API_KEY}
+      - SONARR_EN_1080P_API_KEY=${SONARR_EN_1080P_API_KEY}
+      - SONARR_DE_1080P_API_KEY=${SONARR_DE_1080P_API_KEY}
+      - SONARR_EN_2160P_API_KEY=${SONARR_EN_2160P_API_KEY}
+      - SONARR_DE_2160P_API_KEY=${SONARR_DE_2160P_API_KEY}
+    volumes:
+      - ./configarr:/app/config
+    networks:
+      - traefik
+
+  jellyfin:
+    image: jellyfin/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8096:8096"  # Direct access for debugging
+    environment:
+      - TZ=${TZ}
+    devices:
+      - /dev/dri:/dev/dri  # Intel QSV/VAAPI hardware acceleration
+    volumes:
+      - ./jellyfin/config:/config
+      - ./jellyfin/cache:/cache
+      - /mnt/media/jellyfin/media:/media:rw
+      - /usr/lib/dri:/usr/lib/dri
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for jellyfin.jellystream.net
+      - "traefik.http.routers.jellyfin.rule=Host(`${JELLYFIN_DOMAIN}`)"
+      - "traefik.http.routers.jellyfin.entrypoints=websecure"
+      - "traefik.http.routers.jellyfin.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyfin.loadbalancer.server.port=8096"
+      - "traefik.http.routers.jellyfin.middlewares=geoblock-allowed@file,ratelimit@docker"
+      # — HTTP router that simply redirects to HTTPS
+      - "traefik.http.routers.jellyfin-web.rule=Host(`${JELLYFIN_DOMAIN}`)"
+      - "traefik.http.routers.jellyfin-web.entrypoints=web"
+      - "traefik.http.routers.jellyfin-web.middlewares=redirect-to-https@docker"
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:latest
+    container_name: jellyseerr
+    depends_on:
+      - jellyfin
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:5055:5055"  # Direct access for debugging
+    environment:
+      - LOG_LEVEL=info
+      - TZ=${TZ}
+    volumes:
+      - ./jellyseerr/config:/app/config
+    networks:
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      # — HTTPS router for jellyseerr.jellystream.net
+      - "traefik.http.routers.jellyseerr.rule=Host(`${JELLYSEERR_DOMAIN}`)"
+      - "traefik.http.routers.jellyseerr.entrypoints=websecure"
+      - "traefik.http.routers.jellyseerr.tls.certresolver=cloudflare"
+      - "traefik.http.services.jellyseerr.loadbalancer.server.port=5055"
+      - "traefik.http.routers.jellyseerr.middlewares=geoblock-allowed@file,ratelimit@docker,authelia@docker"
+      # — HTTP → HTTPS redirect
+      - "traefik.http.routers.jellyseerr-web.rule=Host(`${JELLYSEERR_DOMAIN}`)"
+      - "traefik.http.routers.jellyseerr-web.entrypoints=web"
+      - "traefik.http.routers.jellyseerr-web.middlewares=redirect-to-https@docker"
+
+  rdtclient:
+    image: rogerfar/rdtclient:latest
+    container_name: rdtclient
+    restart: unless-stopped
+    network_mode: "service:gluetun"
+    depends_on:
+      - prowlarr
+      - gluetun
+    environment:
+      - TZ=${TZ}
+      - PUID=${PUID}
+      - PGID=${PGID}
+    volumes:
+      - ./rdtclient/db:/data/db
+      - ./downloads:/downloads
+
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:v3.3.19
+    container_name: flaresolverr
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:8191:8191"
+    environment:
+      - LOG_LEVEL=info
+      - CAPTCHA_SOLVER=none
+      - TZ=${TZ}
+    networks:
+      - traefik
+
+  # arr-redownloader:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile.arr-redownloader
+  #   container_name: arr-redownloader
+  #   restart: unless-stopped
+  #   volumes:
+  #     - ./scripts/shared/arr-redownloader.py:/app/arr-redownloader.py:ro
+  #     - ./scripts:/app/scripts:ro
+  #   depends_on:
+  #     - rdtclient
+  #     - gluetun
+  #     - sonarr-1080p-en
+  #     - sonarr-1080p-de
+  #     - sonarr-2160p-en
+  #     - sonarr-2160p-de
+  #     - radarr-1080p-en
+  #     - radarr-1080p-de
+  #     - radarr-2160p-en
+  #     - radarr-2160p-de
+  #   environment:
+  #     # RDTClient
+  #     - RDTCLIENT_USERNAME=${RDTCLIENT_USERNAME}
+  #     - RDTCLIENT_PASSWORD=${RDTCLIENT_PASSWORD}
+  #     - RDTCLIENT_HOST=${RDTCLIENT_HOST}
+  #     # Radarr URLs & keys (match your compose ports)
+  #     - RADARR_1080P_EN_URL=http://radarr-1080p-en:7878
+  #     - RADARR_1080P_EN_KEY=${RADARR_EN_1080P_API_KEY}
+  #     - RADARR_1080P_DE_URL=http://radarr-1080p-de:7878
+  #     - RADARR_1080P_DE_KEY=${RADARR_DE_1080P_API_KEY}
+  #     - RADARR_2160P_EN_URL=http://radarr-2160p-en:7878
+  #     - RADARR_2160P_EN_KEY=${RADARR_EN_2160P_API_KEY}
+  #     - RADARR_2160P_DE_URL=http://radarr-2160p-de:7878
+  #     - RADARR_2160P_DE_KEY=${RADARR_DE_2160P_API_KEY}
+  #     # Sonarr URLs & keys
+  #     - SONARR_1080P_EN_URL=http://sonarr-1080p-en:8989
+  #     - SONARR_1080P_EN_KEY=${SONARR_EN_1080P_API_KEY}
+  #     - SONARR_1080P_DE_URL=http://sonarr-1080p-de:8989
+  #     - SONARR_1080P_DE_KEY=${SONARR_DE_1080P_API_KEY}
+  #     - SONARR_2160P_EN_URL=http://sonarr-2160p-en:8989
+  #     - SONARR_2160P_EN_KEY=${SONARR_EN_2160P_API_KEY}
+  #     - SONARR_2160P_DE_URL=http://sonarr-2160p-de:8989
+  #     - SONARR_2160P_DE_KEY=${SONARR_DE_2160P_API_KEY}
+  #     # Arr-redownloader settings
+  #     - CHECK_INTERVAL=5
+  #     - RETRY_DELAY=30
+  #     - SAFE_PROGRESS=0.90
+  #     - GRACE_PERIOD=30
+  #     - RETRY_COOLDOWN=30
+  #     - DOWNLOAD_BANDWIDTH_KB=19000
+  #     - MIN_SPEED_THRESHOLD=1000
+  #   networks:
+  #     - traefik
+  #     - vpn
+
+  dozzle:
+    image: amir20/dozzle:latest
+    container_name: dozzle
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:9999:8080"
+    environment:
+      - DOZZLE_LEVEL=info
+      - DOZZLE_FILTER="name=^/?(traefik|jellyfin|jellyseerr|sonarr|radarr|bazarr|prowlarr|rdtclient|arr-redownloader|gluetun|flaresolverr|configarr).*"
+      - DOZZLE_ENABLE_ACTIONS=true
+      - DOZZLE_ENABLE_SHELL=true
+      - DOZZLE_AUTH_PROVIDER=simple
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./dozzle/users.yml:/data/users.yml:ro
+      # Log directories
+      - ./bazarr:/logs/bazarr:ro
+      - ./jellyfin/config/log:/logs/jellyfin:ro
+      - ./jellyseerr/config/logs:/logs/jellyseerr:ro
+      - ./prowlarr/config/logs:/logs/prowlarr:ro
+      - ./radarr:/logs/radarr:ro
+      - ./rdtclient/db:/logs/rdtclient:ro
+      - ./sonarr:/logs/sonarr:ro
+      - ./traefik/logs:/logs/traefik:ro
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
+  vpn:
+    driver: bridge
