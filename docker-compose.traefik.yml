@@ -23,6 +23,11 @@ services:
       - --accesslog.filepath=/var/log/traefik/access.log
       - --experimental.plugins.geoblock.modulename=github.com/PascalMinder/GeoBlock
       - --experimental.plugins.geoblock.version=v0.2.2
+      # Enable Prometheus metrics
+      - --metrics.prometheus=true
+      - --metrics.prometheus.addEntryPointsLabels=true
+      - --metrics.prometheus.addServicesLabels=true
+      - --entrypoints.metrics.address=:8082
     ports:
       - "80:80" 
       - "443:443"
@@ -40,6 +45,7 @@ services:
       - ./traefik/dynamic.yml:/dynamic.yml:ro
     networks:
       - traefik
+      - monitoring
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
@@ -52,4 +58,6 @@ services:
 
 networks:
   traefik:
+    external: true
+  monitoring:
     external: true
