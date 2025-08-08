@@ -53,21 +53,21 @@ services:
       - REDIS_URL=redis://watchparty-redis:6379
       - VM_MANAGER_CONFIG=
       - STATS_KEY=your-secret-stats-key
-      # Remove WatchParty authentication - handled by Authelia
-      - BETA_USER_EMAILS=
-      - FREE_ROOM_LIMIT=20
-      - SUBSCRIBER_ROOM_LIMIT=20
-      - ROOM_CAPACITY=20
+      # Enable premium features for all users
+      - FREE_ROOM_LIMIT=100
+      - SUBSCRIBER_ROOM_LIMIT=100
+      - ROOM_CAPACITY=100
+      # Disable Stripe and Firebase (enables premium features automatically)
+      - STRIPE_SECRET_KEY=
+      - FIREBASE_ADMIN_SDK_CONFIG=
+      - FIREBASE_DATABASE_URL=
       # Optional features - add API keys as needed
       - OPENSUBTITLES_KEY=
       - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
-      # Disable unused features
+      # Disable unused features for self-hosted premium mode
       - RECAPTCHA_SECRET_KEY=
-      - FIREBASE_ADMIN_SDK_CONFIG=
-      - FIREBASE_DATABASE_URL=
-      - STRIPE_SECRET_KEY=
-      - VBROWSER_SESSION_SECONDS=0
-      - VBROWSER_SESSION_SECONDS_LARGE=0
+      - VBROWSER_SESSION_SECONDS=86400
+      - VBROWSER_SESSION_SECONDS_LARGE=86400
     expose:
       - "8080"
     networks:

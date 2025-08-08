@@ -14,6 +14,21 @@ WORKDIR /app/src
 # Install dependencies
 RUN npm ci
 
+# Patch WatchParty to enable all premium features for self-hosted instances
+RUN echo "Patching WatchParty for premium feature enablement..." && \
+    # Patch server-side subscription check to always return true
+    sed -i 's/return isSubscriber;/return true;/g' server/utils/stripe.ts && \
+    sed -i 's/const isSubscriber = Boolean(/const isSubscriber = true || Boolean(/g' server/utils/stripe.ts && \
+    # Patch client-side subscription initialization
+    sed -i 's/isSubscriber: data.isSubscriber,/isSubscriber: true,/g' src/index.tsx && \
+    # Patch metadata endpoint to always return isSubscriber: true
+    sed -i 's/isSubscriber,/isSubscriber: true,/g' server/server.ts && \
+    # Enable beta features for all users
+    sed -i 's/beta,/beta: true,/g' server/server.ts && \
+    # Remove subscription checks in room management
+    sed -i 's/if (isSubscriber)/if (true)/g' server/room.ts && \
+    sed -i 's/const isSubscriber = await getIsSubscriberByEmail/const isSubscriber = true; \/\/ await getIsSubscriberByEmail/g' server/room.ts
+
 # Build server and client bundles
 RUN npm run buildServer && npm run build
 
