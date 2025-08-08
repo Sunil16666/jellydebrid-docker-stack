@@ -55,12 +55,12 @@ services:
       - STATS_KEY=your-secret-stats-key
       # Remove WatchParty authentication - handled by Authelia
       - BETA_USER_EMAILS=
-      - FREE_ROOM_LIMIT=10
+      - FREE_ROOM_LIMIT=20
       - SUBSCRIBER_ROOM_LIMIT=20
       - ROOM_CAPACITY=20
       # Optional features - add API keys as needed
       - OPENSUBTITLES_KEY=
-      - YOUTUBE_API_KEY=$(YOUTUBE_API_KEY)
+      - YOUTUBE_API_KEY=${YOUTUBE_API_KEY}
       # Disable unused features
       - RECAPTCHA_SECRET_KEY=
       - FIREBASE_ADMIN_SDK_CONFIG=
@@ -71,15 +71,18 @@ services:
     expose:
       - "8080"
     networks:
-      - traefik
-      - watchparty-internal
+      traefik:
+        priority: 1000
+      watchparty-internal:
+        priority: 100
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
       - "traefik.http.routers.watchparty.rule=Host(`${WATCHPARTY_DOMAIN}`)"
       - "traefik.http.routers.watchparty.entrypoints=websecure"
       - "traefik.http.routers.watchparty.tls.certresolver=cloudflare"
       - "traefik.http.services.watchparty.loadbalancer.server.port=8080"
-      - "traefik.http.routers.watchparty.middlewares=authelia@docker,geoblock-allowed@file,ratelimit@docker"
+      - "traefik.http.routers.watchparty.middlewares=authelia@docker,watchparty-ratelimit@file"
       - "traefik.http.routers.watchparty-web.rule=Host(`${WATCHPARTY_DOMAIN}`)"
       - "traefik.http.routers.watchparty-web.entrypoints=web"
       - "traefik.http.routers.watchparty-web.middlewares=redirect-to-https@docker"

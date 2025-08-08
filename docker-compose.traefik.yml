@@ -43,8 +43,9 @@ services:
     labels:
       - "traefik.enable=true"
       - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
-      - "traefik.http.middlewares.ratelimit.ratelimit.average=10"
-      - "traefik.http.middlewares.ratelimit.ratelimit.burst=200"
+      - "traefik.http.middlewares.ratelimit.ratelimit.average=50"
+      - "traefik.http.middlewares.ratelimit.ratelimit.burst=100"
+      - "traefik.http.middlewares.ratelimit.ratelimit.period=1s"
       - "traefik.http.middlewares.authelia.forwardauth.address=http://authelia:9091/api/authz/forward-auth"
       - "traefik.http.middlewares.authelia.forwardauth.trustForwardHeader=true"
       - "traefik.http.middlewares.authelia.forwardauth.authResponseHeaders=Remote-User,Remote-Groups,Remote-Email,Remote-Name"
