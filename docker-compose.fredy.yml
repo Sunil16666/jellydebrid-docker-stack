@@ -1,0 +1,12 @@
+services:
+  fredy:
+    image: ghcr.io/orangecoding/fredy:master
+    container_name: fredy
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:9998:9998"
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ./fredy/conf:/conf
+      - ./fredy/db:/db
